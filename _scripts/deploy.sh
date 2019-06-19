@@ -5,7 +5,7 @@ if [ $TRAVIS_BRANCH == 'master' ] ; then
     cd _site
     git init
         
-    git remote add deploy "deploy@datapleth.io:/var/www/datapleth.io"
+    git remote add deploy "deploy@188.166.216.253:/var/www/datapleth.io"
     git config user.name "Travis CI"
     git config user.email "longwei66+travisCI@gmail.com"
     
