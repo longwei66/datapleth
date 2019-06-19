@@ -12,7 +12,9 @@ cache:
     - $HOME/bin
 
 addons:
-  ssh_known_hosts: datapleth.io
+  ssh_known_hosts: 
+  - datapleth.io
+  - 188.166.216.253
 
 before_install:
 - bash _scripts/install.sh
