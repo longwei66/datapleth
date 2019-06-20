@@ -1,4 +1,4 @@
-baseURL = "http://datapleth.io"
+baseURL = "http://datapleth.io/"
 languageCode = "en-us"
 title = "Hugo Hero Theme"
 theme = "hugo-hero-theme"
