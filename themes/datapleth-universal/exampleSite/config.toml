@@ -1,7 +1,7 @@
-baseurl = "https://datapleth.io"
-title = "Datapleth.io"
-theme = "datapleth-universal"
-themesDir = "./themes/"
+baseurl = "https://example.org"
+title = "Universal"
+theme = "hugo-universal-theme"
+themesDir = "../.."
 languageCode = "en-us"
 # Site language. Available translations in the theme's `/i18n` directory.
 defaultContentLanguage = "en"
@@ -11,7 +11,7 @@ disqusShortname = "devcows"
 googleAnalytics = ""
 
 # Define the number of posts per page
-paginate = 7
+paginate = 10
 
 [menu]
 
@@ -73,16 +73,6 @@ paginate = 7
     defaultKeywords = ["devows", "hugo", "go"]
     defaultDescription = "Site template made by devcows using hugo"
 
-
-    # Code highlight
-    highlightjsVersion = "9.11.0"
-    highlightjsCDN = "//cdn.bootcss.com"
-    highlightjsLang = ["r", "yaml"]
-    highlightjsTheme = "github"
-    MathJaxCDN = "//cdn.bootcss.com"
-    MathJaxVersion = "2.7.1"
-
-
     # Twitter
     twitter = "GoHugoIO"
     twitterImage = "img/twitter-default.png"
@@ -90,8 +80,8 @@ paginate = 7
     # Google Maps API key (if not set will default to not passing a key.)
     googleMapsApiKey = "AIzaSyCFhtWLJcE30xOAjcbSFi-0fnoVmQZPb1Y"
 
-    # Style options: default (light-blue), blue, green, marsala, pink, red, turquoise, violet
-    style = "green"
+    # Style options: default (light-blue), blue, green, marsala, pink, red, turquoise, violet
+    style = "default"
 
     # Since this template is static, the contact form uses www.formspree.io as a
     # proxy. The form makes a POST request to their servers to send the actual
@@ -106,33 +96,35 @@ paginate = 7
     # - you're done. Happy mailing!
     #
     # Enable the contact form by entering your Formspree.io email
-    email = "longwei66@gmail.com"
+    email = "your@email.com"
     contact_form_ajax = false
 
-    about_us = "<p>At datapleth.io, we are pationate about solving (your) problems with (your) data.</p>"
-    copyright = "Copyright (c) 2015 - 2019, datapleth.io; all rights reserved."
+    about_us = "<p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.</p>"
+    copyright = "Copyright (c) 2015 - 2016, YourCompany; all rights reserved."
 
     # Format dates with Go's time formatting
     date_format = "January 2, 2006"
 
-    logo = "images/logo.svg"
-    logo_small = "images/logo-mobile.svg"
-    address = """<p><strong>Datapleth.io</strong>
-        <br>Somewhere not confirmed
-        <br>42 avenue of unknown
-        <br>42 420 Paris
-        <strong>France</strong>
+    logo = "img/logo.png"
+    logo_small = "img/logo-small.png"
+    address = """<p><strong>Universal Ltd.</strong>
+        <br>13/25 New Avenue
+        <br>Newtown upon River
+        <br>45Y 73J
+        <br>England
+        <br>
+        <strong>Great Britain</strong>
       </p>
       """
-    #latitude = "-12.043333"
-    #longitude = "-77.028333"
+    latitude = "-12.043333"
+    longitude = "-77.028333"
 
 [Permalinks]
     blog = "/blog/:year/:month/:day/:filename/"
 
 # Enable or disable top bar with social icons
 [params.topbar]
-    enable = false
+    enable = true
     text = """<p class="hidden-sm hidden-xs">Contact us on +420 777 555 333 or hello@universal.com.</p>
       <p class="hidden-md hidden-lg"><a href="#" data-animate-hover="pulse"><i class="fa fa-phone"></i></a>
       <a href="#" data-animate-hover="pulse"><i class="fa fa-envelope"></i></a>
@@ -152,13 +144,13 @@ paginate = 7
     # For more informtion take a look at the README.
 
 [params.features]
-    enable = false
+    enable = true
     # All features are defined in their own files. You can find example items
     # at 'exampleSite/data/features'.
     # For more informtion take a look at the README.
 
 [params.testimonials]
-    enable = false
+    enable = true
     # All testimonials are defined in their own files. You can find example items
     # at 'exampleSite/data/testimonials'.
     # For more informtion take a look at the README.
@@ -166,7 +158,7 @@ paginate = 7
     subtitle = "We have worked with many clients and we always like to hear they come out from the cooperation happy and satisfied. Have a look what our clients said about us."
 
 [params.see_more]
-    enable = false
+    enable = true
     icon = "fa fa-file-code-o"
     title = "Do you want to see more?"
     subtitle = "We have prepared for you more than 40 different HTML pages, including 5 variations of homepage."
@@ -174,7 +166,7 @@ paginate = 7
     link_text = "Check other homepages"
 
 [params.clients]
-    enable = false
+    enable = true
     # All clients are defined in their own files. You can find example items
     # at 'exampleSite/data/clients'.
     # For more informtion take a look at the README.
@@ -184,4 +176,4 @@ paginate = 7
 [params.recent_posts]
     enable = true
     title = "From our blog"
-    subtitle = "Check out our blog post and discover how analytics and data vizualisation can be applied in multiple contexts."
+    subtitle = "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo."
