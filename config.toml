@@ -74,15 +74,6 @@ paginate = 7
     defaultDescription = "Site template made by devcows using hugo"
 
 
-    # Code highlight
-    highlightjsVersion = "9.11.0"
-    highlightjsCDN = "//cdn.bootcss.com"
-    highlightjsLang = ["r", "yaml"]
-    highlightjsTheme = "github"
-    MathJaxCDN = "//cdn.bootcss.com"
-    MathJaxVersion = "2.7.1"
-
-
     # Twitter
     twitter = "GoHugoIO"
     twitterImage = "img/twitter-default.png"
@@ -105,7 +96,7 @@ paginate = 7
     # - click the confirm link in the email from www.formspree.io
     # - you're done. Happy mailing!
     #
-    # Enable the contact form by entering your Formspree.io email
+    # Enable the contact form by entering your Formspree.io email
     email = "longwei66@gmail.com"
     contact_form_ajax = false
 
@@ -115,8 +106,8 @@ paginate = 7
     # Format dates with Go's time formatting
     date_format = "January 2, 2006"
 
-    logo = "images/logo.svg"
-    logo_small = "images/logo-mobile.svg"
+    logo = "./images/logo.svg"
+    logo_small = "./images/logo-mobile.svg"
     address = """<p><strong>Datapleth.io</strong>
         <br>Somewhere not confirmed
         <br>42 avenue of unknown
