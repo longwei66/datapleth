@@ -1,4 +1,4 @@
-baseurl = "https://datapleth.io"
+baseurl = "https://datapleth.io/"
 title = "Datapleth.io"
 theme = "datapleth-universal"
 themesDir = "./themes/"
