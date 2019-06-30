@@ -1,0 +1,11 @@
+weight: 2
+title: "Our approach"
+description: >
+  <ul class="list-style-none">
+     <li>Understand your pains</li>
+     <li>Assess available data</li>
+     <li>Use simple analytics</li>
+     <li>Measure impact</li>
+     <li>Iterate</li>
+   </ul>
+image: "img/carousel/template-mac.png"
