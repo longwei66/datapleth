@@ -78,10 +78,24 @@ We don't integrate the download scripts and unzip as from China internet access 
 We will use `readShapeSpatial` method from the `maptools` library to load the shapefile of first level subdivisions of China.
 
 ```{r readShapeFile, message=FALSE}
+# download shapefile
 message(getwd())
-ChinaPolygonsLevel1 <- readShapeSpatial("../../../data/datapleth_data/ext/GAA/CHN_adm1.shp")
+URL <- c("https://datapleth.sfo2.cdn.digitaloceanspaces.com/ext/GAA/CHN_adm1.shp",
+         "https://data.datapleth.io/ext/GAA/CHN_adm1.dbf",
+         "https://data.datapleth.io/ext/GAA/CHN_adm1.shx")
+destFiles <- c("CHN_adm1.shp",
+         "CHN_adm1.dbf",
+         "CHN_adm1.shx")
+
+for(i in URL){
+download.file(url = i, destfile = basename(i), 
+                              method = "wget", quiet = FALSE,
+                              mode = "w", cacheOK = TRUE)
+}
+ChinaPolygonsLevel1 <- maptools::readShapeSpatial(fn = "CHN_adm1.shp")
 class(ChinaPolygonsLevel1 )
 ```
+
 
 ## Exploring the data 
 ### Subdivision data
