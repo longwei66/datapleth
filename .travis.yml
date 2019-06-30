@@ -20,6 +20,7 @@ before_install:
 - bash _scripts/install.sh
 
 script:
+  - Rscript -e 'install.packages("maptools")'
   - Rscript -e 'blogdown::install_hugo()'
   - Rscript -e 'blogdown::build_site()'
   
