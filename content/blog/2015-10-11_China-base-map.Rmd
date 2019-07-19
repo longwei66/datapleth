@@ -1,5 +1,5 @@
 ---
-title: "Map of China provinces, municipalities and autonomous regions (in Chinese)"
+title: "Map of China mainland provinces, municipalities and autonomous regions (in Chinese)"
 author: "Datapleth.io"
 date: "2015-10-11T13:39:46+02:00"
 tags: ["geography"]
@@ -80,7 +80,7 @@ We will use `readShapeSpatial` method from the `maptools` library to load the sh
 ```{r readShapeFile, message=FALSE}
 # download shapefile
 message(getwd())
-URL <- c("https://datapleth.sfo2.cdn.digitaloceanspaces.com/ext/GAA/CHN_adm1.shp",
+URL <- c("https://data.datapleth.io/ext/GAA/CHN_adm1.shp",
          "https://data.datapleth.io/ext/GAA/CHN_adm1.dbf",
          "https://data.datapleth.io/ext/GAA/CHN_adm1.shx")
 destFiles <- c("CHN_adm1.shp",
@@ -247,7 +247,13 @@ print(h)
 
 
 
-## Session Info
+## Code information
+
+### Source code
+
+The source code of this post is available on [github](https://github.com/longwei66/datapleth/blob/master/content/blog/2015-10-11_China-base-map.Rmd)
+
+### Session information
 
 ```{r}
 sessionInfo()
