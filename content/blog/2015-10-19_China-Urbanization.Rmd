@@ -213,3 +213,15 @@ r <- r + guides(colour = guide_legend(nrow = 2), size =  guide_legend(order = 1,
 r <- r + labs(title = "China urbanization rate and cities above 2 millions pop.")
 print(r)
 ```
+
+## Code information
+
+### Source code
+
+The source code of this post is available on [github](https://github.com/longwei66/datapleth/blob/master/content/blog/2015-10-19_China-Urbanization.Rmd)
+
+### Session information
+
+```{r}
+sessionInfo()
+```
