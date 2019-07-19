@@ -46,7 +46,6 @@ library(sp)
 library(ggplot2)
 library(plyr)
 library(dplyr)
-library(showtext)
 ```
 
 ### About R SpatialPolygonsDataFrame
@@ -244,3 +243,16 @@ h <- h + theme_bw() +
 ## Change Palette
 h <- h + scale_fill_brewer(palette="Pastel1", name="Type")
 print(h)
+```
+
+
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
+
+
+
