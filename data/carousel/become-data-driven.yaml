@@ -1,9 +1,6 @@
 weight: 3
 title: "Become data driven"
-description: >
-  <ul class="list-style-none">
-    <li>Explore data use cases</li>
-    <li>Understand data visualisation</li>
-    <li>Be curious, check our blog posts</li>
-  </ul>
+description: 
+  "<p>Be curious, explore our use cases and
+  discover our data vizualisations in our blog</p>"
 image: "./img/carousel/template-tablets-2.png"

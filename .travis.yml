@@ -21,7 +21,7 @@ before_install:
 
 script:
   - Rscript -e 'install.packages(c("maptools","rgeos","gpclib","foreign","sp"))'
-  - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr"))'
+  - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "showtext"))'
   - Rscript -e 'blogdown::install_hugo()'
   - Rscript -e 'blogdown::build_site()'
   
