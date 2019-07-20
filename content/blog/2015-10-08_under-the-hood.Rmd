@@ -4,7 +4,7 @@ date: "2015-10-08T13:39:46+02:00"
 author: "Datapleth.io"
 tags: ["R", "hugo", "ci/cd", "Rmarkdown"]
 categories: ["tech"]
-banner: "https://images.unsplash.com/photo-1536721572694-0b9bc1bb6946?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1534&q=80"
+banner: "img/illustrations/hosea-georgeson-iF2IHS0RVGM-unsplash.jpg"
 output: html_document
 ---
 
