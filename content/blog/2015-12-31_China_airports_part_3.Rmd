@@ -2,8 +2,8 @@
 title: "Getting and cleaning data, example of Chinese airports - Part 3/5"
 date: "2015-12-31T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["R", "hugo", "ci/cd", "Rmarkdown"]
-categories: ["tech"]
+tags: ["airports", "data"]
+categories: ["geography","china"]
 banner: "img/illustrations/chuttersnap-41--YdnYxh0-unsplash.jpg"
 output: html_document
 ---
@@ -12,11 +12,18 @@ output: html_document
 
 ## Introduction
 ### Objective  
-One of the big problem for anybody interested in China and data science is the availability of data sets. There are limited free resources available and they are often incomplete or inaccurate. Getting data and especially cleaning data becomes one of the biggest pain of data science applied to China.
+One of the big problem for anybody interested in China and data science is the
+availability of data sets. There are limited free resources available and they
+are often incomplete or inaccurate. Getting data and especially cleaning data
+becomes one of the biggest pain of data science applied to China.
 
-The objective of this group of post is to illustrate the problem and associated process on a specific example: plot a map of the airports of mainland China.
+The objective of this group of post is to illustrate the problem and associated
+process on a specific example: plot a map of the airports of mainland China.
 
-In this third part, we will do some exploratory data analysis and data cleaning of the OurAirports data set we obtained in [part 1](http://chinapleth.io/2015/12/29/getting-and-cleaning-data-example-of-chinese-airports-part-15/)
+In this third part, we will do some exploratory data analysis and data cleaning
+of the OurAirports data set we obtained in
+[part 1](https://datapleth.io/blog/2015/12/29/2015-12-29_china_airports_part_1/) and 
+[part 2](https://datapleth.io/blog/2015/12/30/2015-12-30_china_airports_part_2/)
 
 
 ### Dependencies
@@ -35,7 +42,7 @@ library(jsonlite)
 
 
 ```{r loadPart1, echo=TRUE,eval=TRUE}
-load(file = "./chinese-airports-part-2.Rda")
+load(file = "./data/chinese-airports-part-2.Rda")
 ```
 
 
@@ -70,7 +77,10 @@ head(dplyr::select(test, name, IATA.FAA, ICAO))
 airportChinaOurairports[grepl(pattern = "AIR BASE", x = toupper(airportChinaOurairports$name)),]$category <- "military airport"
 ```
 
-Checking the names by `unique(airportChinaOurairports$name)` we find out that some of the names are probably military airports, called Air Base, there are `r nrow(test)`. We categorized them as military. In China some of the military airport have a civil use, let's keep them all for the moment.
+Checking the names by `unique(airportChinaOurairports$name)` we find out that 
+some of the names are probably military airports, called Air Base, there are
+`r nrow(test)`. We categorized them as military. In China some of the military
+airport have a civil use, let's keep them all for the moment.
 
 ### Variable `latitude.deg`, `longitude.deg`, `elevation.m`
 ```{r checkAO2}
@@ -78,7 +88,8 @@ sum(is.na(airportChinaOurairports$latitude.deg)) +
 sum(is.na(airportChinaOurairports$longitude.deg))
 sum(is.na(airportChinaOurairports$elevation.m))
 ```
-We only have missing values elevation. But do we have 0? Does the data looks logical ? Let's build a plot of the distributions of these variables.
+We only have missing values elevation. But do we have 0? Does the data looks
+logical ? Let's build a plot of the distributions of these variables.
 
 ```{r checkAO3}
 ##      Create the 2x2 tiled chart to be filled by row
@@ -89,19 +100,32 @@ hist(airportChinaOurairports$elevation.m, breaks = 20)
 hist(airportChinaOurairports[airportChinaOurairports$elevation.m < 50,]$elevation.m, breaks = 100, xlab = "Airports with elevation < 50m")
 ```
 
-With this tiled chart we can visualize quickly that distribution of latitude and longitude which looks reasonable with no extreme values. Regarding elevation, we have a lot of airport in low elevation and in the bottom right chart we see that almost none of them are at 0 meters.
+With this tiled chart we can visualize quickly that distribution of latitude and
+longitude which looks reasonable with no extreme values. Regarding elevation, we
+have a lot of airport in low elevation and in the bottom right chart we see that
+almost none of them are at 0 meters.
 
 
 ```{r mapAO, warning=FALSE}
 g <- ggplot() + theme_bw()
 ## airports with elevation
-g <- g + geom_point(data = airportChinaOurairports, aes(x = longitude.deg, y = latitude.deg, colour = elevation.m, shape = type.airport), pch = 19)
+g <- g + geom_point(
+    data = airportChinaOurairports,
+    aes(
+        x = longitude.deg, y = latitude.deg,
+        colour = elevation.m, shape = type.airport
+        ),
+    pch = 19)
 ## airport with 0 m  as elevation in red
-g + geom_point(data = airportChinaOurairports[is.na(airportChinaOurairports$elevation.m),], aes(x = longitude.deg, y = latitude.deg, colour = elevation.m), size = 5, alpha = 0.2, col = "firebrick", pch = 1) +
-        ggtitle("exploratory plot of OA dataset with elevation")
+g + geom_point(
+    data = airportChinaOurairports[is.na(airportChinaOurairports$elevation.m),],
+    aes(x = longitude.deg, y = latitude.deg, colour = elevation.m),
+    size = 5, alpha = 0.2, col = "firebrick", pch = 1
+    ) + ggtitle("exploratory plot of OA dataset with elevation")
 ```
 
-This map is the plot of airports based on the geolocalisation and elevation. Airports with NA data for elevation are highlighted by a red circle. 
+This map is the plot of airports based on the geolocalisation and elevation. 
+Airports with NA data for elevation are highlighted by a red circle. 
 
 ### Variable : `city`
 ```{r checkOAcity}
@@ -183,7 +207,8 @@ We replace the unassigned region name by NA.
 
 ### Removing military airports
 
-The military airports to be removed are the one with no ICAO and IATA.FAA codes. We assume they don't provide passenger service.
+The military airports to be removed are the one with no ICAO and IATA.FAA codes.
+We assume they don't provide passenger service.
 
 ```{r noCodeOA}
 ## Airports with no IATA & ICAO and of type military
@@ -191,9 +216,12 @@ airportChinaOurairports <- airportChinaOurairports[!(is.na(airportChinaOurairpor
 ```
 
 ### Conclusion
-We have a dataset of `r nrow(airportChinaOurairports)` airports which still requires some work to complete the missing data for few IATA codes and several ICAO Codes. Most of the elevation data is missing.
+We have a dataset of `r nrow(airportChinaOurairports)` airports which still 
+requires some work to complete the missing data for few IATA codes and several
+ICAO Codes. Most of the elevation data is missing.
 
-Let's use the Amelia package to get an overview of the missing data in the data set.
+Let's use the Amelia package to get an overview of the missing data in the data
+set.
 
 ```{r ourAirportAmelia, message=FALSE}
 library(Amelia)
@@ -220,8 +248,24 @@ Let's now save the different objects to be reused in the next part of this post.
 save( list = c("airportChinaOpenflights", 
                "airportChinaOurairports"
                ),
-      file = "chinese-airports-part-3.Rda")
+      file = "./data/chinese-airports-part-3.Rda")
 ```
 
 In the next post, we will Creating one data set and fetching missing data.
+
+
+
+## Code information
+
+### Source code
+
+The source code of this post is available on [github](https://github.com/longwei66/datapleth/blob/master/content/blog/2015-12-31_China_airports_part_3.Rmd)
+
+### Session information
+
+```{r}
+sessionInfo()
+```
+
+
 

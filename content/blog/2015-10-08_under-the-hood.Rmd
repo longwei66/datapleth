@@ -2,8 +2,8 @@
 title: "Under the hood - Software configuration of datapleth.io"
 date: "2015-10-08T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["R", "hugo", "ci/cd", "Rmarkdown"]
-categories: ["tech"]
+tags: ["R", "hugo", "ci/cd", "Rmarkdown", "blogdown", "ubuntu", "linux", "travis"]
+categories: ["technology"]
 banner: "img/illustrations/hosea-georgeson-iF2IHS0RVGM-unsplash.jpg"
 output: html_document
 ---
@@ -105,12 +105,16 @@ We use [travis](https://travis-ci.org) for continuous intregration as described 
 
 
 
+## Code information
 
+### Source code
 
+The source code of this post is available on [github](https://github.com/longwei66/datapleth/blob/master/content/blog/2015-10-08_under-the-hood.Rmd)
 
+### Session information
 
-
-
-
+```{r}
+sessionInfo()
+```
 
 

@@ -2,8 +2,8 @@
 title: "China Urbanisation & Large cities"
 date: "2015-10-19T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["R", "hugo", "ci/cd", "Rmarkdown"]
-categories: ["tech"]
+tags: ["china", "map", "urbanization", "demography"]
+categories: ["dataviz","geography"]
 banner: "blog/2015-10-19_China-Urbanization_files/figure-html/addCitiestoChoropleth-1.png"
 output: html_document
 ---
@@ -62,9 +62,18 @@ loadPolupationData <- function(dataFile,mapVariable = "population"){
 Let's now load the population data.
 
 ```{r loadPopulationData, cache=TRUE}
-provincePopulationT <- loadPolupationData(dataFile = "https://datapleth.sfo2.cdn.digitaloceanspaces.com/ext/province-population/China-Total-Resident-per-province.csv", mapVariable = "Total.Population")
-provincePopulationU <- loadPolupationData(dataFile = "https://data.datapleth.io/ext/province-population/China-Urban-Resident-per-province.csv", mapVariable = "Urban.Population")
-provincePopulationR <- loadPolupationData(dataFile = "https://data.datapleth.io/ext/province-population/China-Rural-Resident-per-province.csv", mapVariable = "Rural.Population")
+provincePopulationT <- loadPolupationData(
+        dataFile = "https://data.datapleth.io/ext/province-population/China-Total-Resident-per-province.csv",
+        mapVariable = "Total.Population"
+        )
+provincePopulationU <- loadPolupationData(
+        dataFile = "https://data.datapleth.io/ext/province-population/China-Urban-Resident-per-province.csv",
+        mapVariable = "Urban.Population"
+        )
+provincePopulationR <- loadPolupationData(
+        dataFile = "https://data.datapleth.io/ext/province-population/China-Rural-Resident-per-province.csv",
+        mapVariable = "Rural.Population"
+        )
 
 ## merge in one data frame
 provincePopulation <- merge(provincePopulationT, provincePopulationU)
@@ -98,7 +107,7 @@ print(g)
 We need now to load the polygon shape data frame for china level one subdivisions, merge it with urbanization rate data.
 
 ```{r readShapeFile, message=FALSE, cache=TRUE, fig.width=12}
-ChinaPolygonsLevel1 <- maptools::readShapeSpatial(fn = "CHN_adm1.shp")
+ChinaPolygonsLevel1 <- maptools::readShapeSpatial(fn = "./data/CHN_adm1.shp")
 
 ## Fix English names, simplify
 ChinaPolygonsLevel1@data$NAME_1 <- as.character(ChinaPolygonsLevel1@data$NAME_1)
@@ -149,7 +158,13 @@ names(mainCitiesOfChina)
 ## convert population in millions
 mainCitiesOfChina$pop <- mainCitiesOfChina$pop / 1000000
 ## plot cities of more than 2 million population
-qplot(x = long, y = lat, data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,], size = pop, col = capital, main = "Chinese cities with more than 2 millions inhabitants by long/lat")
+qplot(
+        x = long, y = lat,
+        data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,],
+        size = pop,
+        col = capital,
+        main = "Chinese cities with more than 2 millions inhabitants by long/lat"
+        )
 ```
 
 
@@ -176,7 +191,10 @@ rm(ChinaLevel1)
 
 ## Create the ggplot using standard approach
 ## group is necessary to draw in correct order, try without to understand the problem
-g <- ggplot(urbanisationChoropleth, aes(x = long, y = lat, fill = Urbanisation.rate, group = group))
+g <- ggplot(
+        urbanisationChoropleth,
+        aes(x = long, y = lat, fill = Urbanisation.rate, group = group)
+        )
 g <- g + scale_fill_continuous(na.value = "grey80", low = "#ffdddd", high = "#ff3311", name = "Urbanization %")
 ## projected shadow
 g <- g+ geom_polygon(aes(x = long + 0.7, y = lat - 0.5), color = "grey50", size = 0.2, fill = "grey50")
@@ -196,19 +214,26 @@ Then we just need to add another layer with bubbles for each cities larger than 
 r <- g + theme_bw() + theme(axis.text = element_blank(),
               axis.title = element_blank(),
               axis.ticks = element_blank(),
-#              legend.position = c(0.1, 0.5),
-#              legend.justification='right',
               legend.text = element_text(size = rel(0.7))
-#              legend.background = element_rect(color = "gray50", size = 0.3,
-#                                               fill = "white")
               )
 ## Bubles for cities, we superpose two type of geom_point, circles an disks with alpha
-r <- r + geom_point(data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,], aes(x = long, y = lat, size = pop, fill = NULL, group = NULL ), colour = "blue", alpha = 1, pch = 1)
-r <- r + geom_point(data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,], aes(x = long, y = lat, size = pop, fill = NULL, group = NULL ), colour = "blue", alpha = 0.2, pch = 16)
+r <- r + geom_point(
+        data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,],
+        aes(x = long, y = lat, size = pop, fill = NULL, group = NULL ),
+        colour = "blue", alpha = 1, pch = 1
+        )
+r <- r + geom_point(
+        data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,],
+        aes(x = long, y = lat, size = pop, fill = NULL, group = NULL ),
+        colour = "blue", alpha = 0.2, pch = 16
+        )
 r <- r + scale_size_area(max_size = 12, breaks = c(2,5,10), name = "Population in millions")
 ## Add city names, hjust is a small adjustment for better readability
-r <- r + geom_text(data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,], aes(
-        x = long, y = lat, label = name, size = 0.5, group = NULL, fill = NULL, hjust = -0.18), show_guide = FALSE)
+r <- r + geom_text(
+        data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,],
+        aes(x = long, y = lat, label = name, size = 0.5, group = NULL, fill = NULL, hjust = -0.18),
+        show_guide = FALSE
+        )
 r <- r + guides(colour = guide_legend(nrow = 2), size =  guide_legend(order = 1, nrow = 1))
 r <- r + labs(title = "China urbanization rate and cities above 2 millions pop.")
 print(r)

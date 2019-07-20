@@ -2,8 +2,8 @@
 title: "Map of China mainland provinces, municipalities and autonomous regions (in Chinese)"
 author: "Datapleth.io"
 date: "2015-10-11T13:39:46+02:00"
-tags: ["geography"]
-categories: ["dataviz"]
+tags: ["china", "map"]
+categories: ["dataviz","geography"]
 banner: "blog/2015-10-11_China-base-map_files/figure-html/ChinaProvincesAndNames-1.png"
 output: html_document
 ---
@@ -83,16 +83,17 @@ message(getwd())
 URL <- c("https://data.datapleth.io/ext/GAA/CHN_adm1.shp",
          "https://data.datapleth.io/ext/GAA/CHN_adm1.dbf",
          "https://data.datapleth.io/ext/GAA/CHN_adm1.shx")
-destFiles <- c("CHN_adm1.shp",
-         "CHN_adm1.dbf",
-         "CHN_adm1.shx")
+destFiles <- c("./data/CHN_adm1.shp",
+               "./data/CHN_adm1.dbf",
+               "./data/CHN_adm1.shx")
 
-for(i in URL){
-download.file(url = i, destfile = basename(i), 
-                              method = "wget", quiet = FALSE,
-                              mode = "w", cacheOK = TRUE)
+for(i in 1:length(URL)){
+    download.file(url = URL[i], destfile = destFiles[i], 
+                  method = "wget", quiet = FALSE,
+                  mode = "w", cacheOK = TRUE)
 }
-ChinaPolygonsLevel1 <- maptools::readShapeSpatial(fn = "CHN_adm1.shp")
+#ChinaPolygonsLevel1 <-maptools::readShapeSpatial(fn = "./data/CHN_adm1.shp")
+ChinaPolygonsLevel1 <-rgdal::readOGR(dsn =  "./data/CHN_adm1.shp")
 class(ChinaPolygonsLevel1 )
 ```
 
@@ -216,7 +217,7 @@ We want to plot province names, for that let's calculate the theoretical center 
 ## ddply is from the plyr package
 
 Level1Centers <-
-        ddply(ChinaLevel1dF, .(id), summarize, clat = mean(lat), clong = mean(long))
+    ddply(ChinaLevel1dF, .(id), summarize, clat = mean(lat), clong = mean(long))
 ## Merge results in one data frame
 ChinaLevel1Data <- merge(ChinaLevel1Data, Level1Centers, all = TRUE)
 ```
@@ -226,18 +227,24 @@ http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/
 
 ```{r ChinaProvincesAndNames, cache=TRUE, fig.width=9, fig.height=6}
 ## Add the province chinese names
-h <- g + geom_text(data = ChinaLevel1Data , aes(
-                x = jitter(clong, amount = 1), y = jitter(clat, amount = 1), label = id, size = 0.2, group = NULL, fill=NULL), show_guide = FALSE
-        ) 
+h <- g + geom_text(data = ChinaLevel1Data ,
+                   aes(
+                       x = jitter(clong, amount = 1),
+                       y = jitter(clat, amount = 1), 
+                       label = id, size = 0.2,
+                       group = NULL, fill=NULL
+                   ),
+                   show_guide = FALSE
+) 
 
 ## Theme configuration
 h <- h + theme_bw() + 
-                theme(axis.text = element_blank(),
-                axis.title = element_blank(),
-                axis.ticks = element_blank(),
-                legend.position = c(0.9, 0.2),
-                legend.text = element_text(size = rel(0.7)),
-                legend.background = element_rect(color = "gray50", size = 0.3,
+    theme(axis.text = element_blank(),
+          axis.title = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = c(0.9, 0.2),
+          legend.text = element_text(size = rel(0.7)),
+          legend.background = element_rect(color = "gray50", size = 0.3,
                                            fill = "white"))
 
 ## Change Palette
