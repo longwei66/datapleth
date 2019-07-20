@@ -16,6 +16,7 @@ apt_packages:
 - fonts-arphic-gkai00mp fonts-arphic-ukai fonts-arphic-uming fonts-cns11643-kai
 - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
 - fonts-cwtex-ming fonts-cwtex-yen
+- libgdal-dev libproj-dev
 
 
 cache:
