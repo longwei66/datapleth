@@ -36,9 +36,9 @@ before_install:
 
 script:
   - Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
-  - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2"))'
+  - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
   - Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
-  - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest"))'
+  - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
   - Rscript -e 'blogdown::install_hugo()'
   - Rscript -e 'blogdown::build_site()'
   

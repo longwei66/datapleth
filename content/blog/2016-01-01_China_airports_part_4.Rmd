@@ -30,7 +30,6 @@ In order to compare and fix missing or wrong data we are going to use different 
 
 - `stringdist` from the package of the same name to check the distance between two chains of characters
 - the Google map API which give back elevation for a set of longitude / latitude
-- `gmaps` to return maps of an area where airports are supposed to be located
 
 
 ### Dependencies
@@ -46,6 +45,8 @@ library(jsonlite)
 library(Amelia)
 library(OpenStreetMap)
 library(rvest)
+library(stringdist)
+library(grid)
 ```
 
 ### Loading part 3 objects
@@ -146,7 +147,6 @@ We keep city.x which seems better.
 ```{r full4, message=TRUE}
 IATA[is.na(IATA$city.x),]$city.x <- IATA[is.na(IATA$city.x),]$city.y 
 
-library(stringdist)
 dist <- stringdist(IATA$city.x, IATA$city.y)
 hist(dist, breaks = 40)
 dplyr::select(IATA[dist > 0,], city.x, city.y, name.x)
@@ -217,8 +217,7 @@ to display images side by side (OF vs. OA)
 # 3 will go all the way across the bottom.
 #
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-
+  
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
 
