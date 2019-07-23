@@ -256,9 +256,9 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 ```{r checkLocation, message=FALSE, fig.width=3, fig.height=3}
 mapAirport <- function(
   long, lat,
-  delta_lat=0.08,
-  delta_lon=0.08,
-  tiles=15, t="bing",
+  delta_lat=0.06,
+  delta_lon=0.06,
+  tiles=15, t="osm", #t="bing",
   title = "my title"
   ) {
     map = openmap(c(lat= lat-delta_lat,   lon= long-delta_lon),
