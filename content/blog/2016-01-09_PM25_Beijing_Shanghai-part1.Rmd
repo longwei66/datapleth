@@ -8,13 +8,13 @@ banner: "img/illustrations/holger-link-wZTiKB6rQYY-unsplash.jpg"
 output: html_document
 ---
 
-
-
-## Introduction
-### Objective
 Pollution in Beijing (and even Shanghai) at the end of 2015 reached terrible levels, there have been a lot of comments in the Chinese and international news about air pollution in China. AQI (air quality index) and PM2.5 (particle matters 2.5 micro gram per cubic meter) are the most popular data used to measure pollution in China which is mainly related to fine particles in the air. We will study in this series of posts the pollution in Beijing, compare it to previous years and to other cities such as Guangzhou and Shanghai, Paris.
 
-### Overall Process :  
+
+## Objective
+
+**Overall Process:**
+
 1. Get data : from US embassy PM2.5 hourly readings for China and Airparif for France
 2. Check and clean data
 3. Exploratory analysis
@@ -23,11 +23,12 @@ Pollution in Beijing (and even Shanghai) at the end of 2015 reached terrible lev
 
 In this first part we will cover steps 1 and 2, how to get and clean the AQI / PM2.5 data.
 
-### Required libraries
+**Required libraries:**
 We need several R packages for this study.
 
 ```{r loadLibraries, message=FALSE, warning=FALSE}
 library(lubridate)
+library(data.table)
 library(dplyr)
 library(ggplot2)
 ```
@@ -160,7 +161,7 @@ This url list is available in our [git repo](https://raw.githubusercontent.com/l
 
 ```{r loadURLdatasources}
 # get from github
-aqiChinaDatasources <- read.csv(
+aqiChinaDatasources <- fread(
   "https://raw.githubusercontent.com/longwei66/dataPleth-wordpress/master/data/share/aqi/aqi-cities-data-source-url.csv", 
   header = TRUE, stringsAsFactors = FALSE)
 aqiChinaDatasources$folder <- paste(
@@ -202,16 +203,20 @@ Once data sets have been downloaded in previous section, we are now going to rea
 
 ```{r functionReadingAqi, message=FALSE, cache=TRUE}
 # Function to read AQI data from csv file to data.frame
-load_aqi_data <- function(filepath,country,city,year) {
-  dF <-read.csv(
+load_aqi_data <- function(filepath,mycountry,mycity,myyear) {
+  dF <-fread(
     filepath, sep = ",", header = FALSE, stringsAsFactors = FALSE, 
     strip.white = TRUE, skip = 3)
   ## return the dataframe of AQI data, fix variable names
-  names(dF) <- make.names(dF[1,]); dF <- dF[2:nrow(dF),]
-  dF$country <- country
-  dF$city <- city
-  dF$year <- year
-  dF}
+  setnames(dF, make.names(dF[1]))
+  dF <- dF[2:nrow(dF)]
+  dF[ , ':=' (
+    country = mycountry,
+    city = mycity,
+    year = myyear
+    ) ]
+  dF
+  }
 # Function to read a bunch of csv files specified in a vector and return on list of data.frames
 aqi <- NULL
 for(i in 1:nrow(aqiChinaDatasources)){
@@ -221,9 +226,9 @@ for(i in 1:nrow(aqiChinaDatasources)){
   message(filepath)
   aqi <- rbind(aqi,
                load_aqi_data(filepath = filepath,
-                             country = aqiChinaDatasources$country[i],
-                             city = aqiChinaDatasources$city[i],
-                             year = aqiChinaDatasources$year[i]))
+                             mycountry = aqiChinaDatasources$country[i],
+                             mycity = aqiChinaDatasources$city[i],
+                             myyear = aqiChinaDatasources$year[i]))
   message(nrow(aqi))
 }
 ```
@@ -248,11 +253,11 @@ format2 <- sum(grepl(pattern = ".*\\/.*\\/20[0-9][0-9]",x = aqi$Date..LST.))
 format1 + format2 - nrow(aqi)
 # we convert the character string as "POSIXlt" "POSIXt"
 # for each form
-aqi$date.time <- as.POSIXlt(strptime("2000-12-31 12:00", "%Y-%m-%d %H:%M"))
+aqi$date.time <- as.POSIXct(strptime("2000-12-31 12:00", "%Y-%m-%d %H:%M"))
 testFormat1 <- grepl(pattern = "^20[0-9][0-9]-.*",x = aqi$Date..LST.)
 testFormat2 <- grepl(pattern = ".*\\/.*\\/20[0-9][0-9]",x = aqi$Date..LST.)
-aqi[testFormat1,]$date.time <- strptime(aqi[testFormat1,]$Date..LST., "%Y-%m-%d %H:%M")
-aqi[testFormat2,]$date.time <- strptime(aqi[testFormat2,]$Date..LST., "%m/%d/%Y %H:%M")
+aqi[testFormat1]$date.time <- as.POSIXct(strptime(aqi[testFormat1,]$Date..LST., "%Y-%m-%d %H:%M"))
+aqi[testFormat2]$date.time <- as.POSIXct(strptime(aqi[testFormat2,]$Date..LST., "%m/%d/%Y %H:%M"))
 summary(aqi$date.time)
 # Nothing to do for year
 class(aqi$year)
@@ -282,7 +287,7 @@ aqi$aqi <- sapply(aqi$pm2.5,pm25_to_aqi)
 # add one variable for date
 aqi$date <- as.character(strptime(paste(aqi$year,aqi$Month,aqi$Day,sep = "-"), "%Y-%m-%d"))
 # Let's rename variable and reorder
-names(aqi) <-  c("month","day","hour","measurement.available","country","city","year","date.time","pm2.5", "aqi","date")
+setnames(aqi, c("month","day","hour","measurement.available","country","city","year","date.time","pm2.5", "aqi","date"))
 aqi <- select(aqi, country, city, date.time, date, year, month, day, hour, measurement.available, pm2.5, aqi)
 ```
 
@@ -290,36 +295,42 @@ aqi <- select(aqi, country, city, date.time, date, year, month, day, hour, measu
 #### Reading data for Paris
 ```{r readParisAqidata}
 # Paris
-ParisAqi <- read.csv(parisAQIdatafile, sep = ";", na.strings = "n/d", stringsAsFactors = FALSE, header = FALSE, skip = 2)
-names(ParisAqi) <- c("date",  "heure", "PM25",  "PM10",  "O3",    "NO2",   "CO")
+ParisAqi <- fread(parisAQIdatafile, sep = ";", na.strings = "n/d", stringsAsFactors = FALSE, header = FALSE, skip = 2)
+setnames(ParisAqi, c("date","heure","PM25","PM10","O3","NO2","CO"))
 ```
 
 #### Cleaning data for Paris
 
 ```{r cleanParisAqi, cache=TRUE}
 ## create measurement.available column
-ParisAqi$measurement.available <- "Valid"
-ParisAqi[is.na(ParisAqi$PM25),]$measurement.available <- "Missing"
+ParisAqi[ , measurement.available := "Valid"]
+ParisAqi[is.na(ParisAqi$PM25), measurement.available := "Missing"]
 ## create date.time variable
-ParisAqi$date.time <- paste(ParisAqi$date, ParisAqi$heure, sep = "-")
+ParisAqi[ , date.time := paste(date, heure, sep = "-")]
 ## select only the variable we need
-ParisAqi <- select(ParisAqi, date.time, PM25, measurement.available)
+ParisAqi <- ParisAqi[, .(date.time, PM25, measurement.available)]
 ## change names
-names(ParisAqi) <- c("date.time", "pm2.5", "measurement.available")
+setnames(ParisAqi, c("date.time", "pm2.5", "measurement.available"))
 ## convert the character variable to date format
-ParisAqi$date.time <- strptime(ParisAqi$date.time, "%d/%m/%Y-%H")
+ParisAqi[ , date.time := as.POSIXct(strptime(ParisAqi$date.time, "%d/%m/%Y-%H")) ]
 ## add reference fields
-ParisAqi$country <- "France"
-ParisAqi$city <- "Paris"
-ParisAqi$year <- year(ParisAqi$date.time)
-ParisAqi$month <- month(ParisAqi$date.time)
-ParisAqi$day <- day(ParisAqi$date.time)
-ParisAqi$hour <- hour(ParisAqi$date.time)
-ParisAqi$aqi <- sapply(ParisAqi$pm2.5,pm25_to_aqi)
+ParisAqi[ , ':=' (
+  country = "France",
+  city = "Paris",
+  year = as.numeric(year(date.time)),
+  month = as.numeric(month(date.time)),
+  day = as.numeric(day(date.time)),
+  hour = as.numeric(hour(date.time)),
+  pm2.5 = as.numeric(pm2.5)
+  )]
+ParisAqi$aqi <- as.numeric(sapply(ParisAqi$pm2.5,pm25_to_aqi))
 # add one variable for date
 ParisAqi$date <- as.character(strptime(paste(ParisAqi$year,ParisAqi$month,ParisAqi$day,sep = "-"), "%Y-%m-%d"))
 ## order the fields
-ParisAqi <- select(ParisAqi,country,city,date.time,date,year,month,day,hour,measurement.available,pm2.5,aqi)
+ParisAqi <- ParisAqi[ , .(
+  country,city,
+  date.time,date,year,month,day,hour,
+  measurement.available,pm2.5,aqi)]
 ```
 
 ## Merging China and Paris data
@@ -339,7 +350,7 @@ Let's save the data frame for next part
 ```{r saveObjects, cache=FALSE}
 save( list = c("aqi"
 ),
-file = "./aqi-1.Rda")
+file = "./data/aqi-1.Rda")
 ```
 
 

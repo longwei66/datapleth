@@ -1,0 +1,193 @@
+---
+title: "GDP Growth and Chinese new year fireworks"
+date: "2016-03-09T13:39:46+02:00"
+author: "Datapleth.io"
+tags: ["pm2.5", "particles", "pollution", "gdp", "chinese new year"]
+categories: ["air quality","china", "economy"]
+banner: "img/illustrations/chuttersnap-6ZJDhIjmqKk-unsplash.jpg"
+output: html_document
+---
+
+
+Winter 2016 - For the first time ever, the city of Shanghai (and probably of Nanjing) entered the year of the monkey with a very quiet night. For safety and environmental reasons, the usual fireworks and firecrackers hysteria was forbidden downtown by the local government. (read the [full story](https://www.scmp.com/news/china/society/article/2133109/chinas-lunar-new-year-fireworks-ban-struggle-between-protecting)
+
+This is a very big cultural change which was implemented very strictly. Fireworks and other noisy traditional firecrackers are used for important events in China, such as weddings, opening of shops or companies and lunar new year celebrations. They are used to chase away evils and bring good luck and prosperity for the future.
+
+Our objective is to find out if GPD growth is improved by the amount of fireworks used during Chinese new year or if at the contrary, less improvement in economy lead to less frantic nights and less fireworks.
+
+## Introduction
+
+In this post we will try with a bit of data hack and visualization :
+
+- to confirm and illustrate the impact of fireworks on air quality during the new year's eve
+- to quantify the amount of fireworks based on air quality change during that night
+- to confirm links between GDP growth (the main economical indicator of China economy) of the country and the different cities with amount of fireworks used during new year's eve
+
+**Overall Process: **
+
+1. Get and clean PM2.5 from main cities (see previous post [here](https://datapleth.io/blog/2016/01/09/2016-01-09_pm25_beijing_shanghai-part1/))
+2. Get and clean dates of past Chinese new year eve
+3. Get and clean GDP growth data for China and its main cities
+3. Prepare a clean data set with days before and after new year
+4. Exploratory analysis
+5. Evaluate impact of fireworks on PM2.5
+6. Estimate the amount of fireworks used in each cities
+7. build a model PM2.5 > amount of fireworks > GDP growth
+8. analysis and conclusions
+
+In this first part we will cover steps 1 to 4.
+
+**Required libraries**
+
+We need several R packages for this study.
+
+```{r loadLibraries, message=FALSE, warning=FALSE, include=TRUE}
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(data.table)
+library(rvest) # for webscrapping
+# Set-up locale for date format processing
+Sys.setlocale("LC_ALL","C")
+```
+
+
+## Getting and cleaning data : 
+
+> We need PM2.5 readings, Chinese new year dates & GPD growth of main cities
+
+### Chinese new year dates
+We will scrape [wikipedia](https://en.wikipedia.org/wiki/Chinese_New_Year) to extract and clean dates of Chinese New Year. The great rvest package will be our friends for that [see example on r-blogger](http://www.r-bloggers.com/using-rvest-to-scrape-an-html-table/).
+
+```{r scrapeWikipediacny, echo=TRUE, message=FALSE, warning=FALSE}
+url <- "https://en.wikipedia.org/wiki/Chinese_New_Year"
+table_xpath <- '//*[@id="mw-content-text"]/div/table[4]'
+cny <- url %>%
+  read_html() %>%
+  html_nodes(xpath= table_xpath) %>%
+  html_table(fill = TRUE)
+## keep only what we want
+cny <- cny[[1]]
+cny <- cny[-1,1:4]
+names(cny) <- c("year", "date","animal","weekday" )
+cny$date <- paste(cny$date, cny$year)
+cny$date <- as.character(strptime(cny$date, "%d %b %Y"))
+head(cny)
+
+## extract the New Year eve and night
+cny$eve <- as.character(as.Date(cny$date)-1)
+```
+
+
+### PM2.5
+We will simply reuse directly the dataset generated in our previous post ([see](https://datapleth.io/blog/2016/01/09/2016-01-09_pm25_beijing_shanghai-part1/))
+
+```{r loadPM2.5data}
+load(file = "./data/aqi-1.Rda")
+#aqi <- as.data.table(aqi)
+names(aqi)
+# Remove Paris
+aqi <- aqi[city != "Paris"]
+```
+
+The codebook for this dataset is available in  [this post](http://chinapleth.io/2016/03/22/chinaplethaqi-dataset-codebook/). We need the stats for these cities: `r unique(aqi[aqi$city != "Paris",]$city)`.
+
+```{r subsetPM2.5}
+aqicny <- aqi[date %in% cny$date | date %in% cny$eve]
+aqicny[ , time := hour ]
+aqicny[ date %in% cny$date, time := time + 24 ]
+aqicny[ , year := as.factor(year) ]
+qplot(
+        data = aqicny,
+        x = time,
+        y = pm2.5,
+        facets = city ~ year,
+        col = year,
+        main = "Peak of pm2.5 during chinese new year eve (fireworks)"
+        )
+```
+
+
+### GDP Growth
+The best source we found is the official China statistic bureau. You can follow the following this [link](http://data.stats.gov.cn/english/easyquery.htm?cn=E0103&f=912) to download the data (Choose National Account / Gross Regional Product Index).
+
+```{r loadCNStats}
+## data.stats.gov.cn files tend to be formatted with similar patterns
+dataFile <- "https://data.datapleth.io/ext/GDP/GDP_Growth_AnnualbyProvince.csv"
+gdpGrowth <- fread(dataFile ,header = TRUE, stringsAsFactors = FALSE, skip = 3)
+## Remove NA values
+gdpGrowth <- gdpGrowth[complete.cases(gdpGrowth)]
+## Fix dF names
+setnames(gdpGrowth, c("Region", gsub("^X", "", names(gdpGrowth)[-1])))
+## get the proper province names
+gdpGrowth[ , Region := gsub("^Inner Mongolia$", "Nei Menggu", Region) ]
+gdpGrowth[ , Region := gsub("^Tibet$", "Xizang", Region) ]
+
+## Melt as long format
+gdpGrowth <- melt(gdpGrowth, id.vars = "Region")
+## Get the GDP in billion of yuan instand of 100 millions
+gdpGrowth[ , value := value - 100 ]
+names(gdpGrowth) <- c("Region", "Year", "provincial.gdp.Growth")
+## Get the year in numeric instead of factor
+gdpGrowth$Year <- as.numeric(as.character(gdpGrowth$Year))
+```
+
+The problem of these data is the lack of figure for 2015 full year, indeed 2015 Q4 statistic are not yet officially released.
+We are going to use Q3 statistic to represent full year 2015.
+
+```{r loadCNstats2}
+## data.stats.gov.cn files tend to be formatted with similar patterns
+dataFile <- "https://data.datapleth.io/ext/GDP/GDP_QuarterlybyProvince.csv"
+gdpGrowth2 <- fread(dataFile ,header = TRUE, stringsAsFactors = FALSE, skip = 2)
+## Remove NA values, keep only growth column
+gdpGrowth2 <- gdpGrowth2[complete.cases(gdpGrowth2),c(1,3)]
+## Fix dF names
+setnames(gdpGrowth2, c("Region", "provincial.gdp.Growth"))
+## get the proper province names
+gdpGrowth2[, Region := gsub("^Inner Mongolia$", "Nei Menggu", Region) ]
+gdpGrowth2[, Region := gsub("^Tibet$", "Xizang", Region) ]
+
+## add year
+gdpGrowth2[ , Year := 2015]
+## Get the GDP in percentage of growth
+gdpGrowth2[ , provincial.gdp.Growth := (gdpGrowth2$provincial.gdp.Growth - 100)]
+
+## Bind with previous data
+gdpGrowth <- rbind(gdpGrowth2, gdpGrowth)
+
+## Let's keep only the province for which we have PM2.5 data
+listOfProvince <- c("Shanghai", "Beijing", "Sichuan", "Guangdong", "Liaoning")
+gdpGrowth <- gdpGrowth[gdpGrowth$Region %in% listOfProvince]
+## add the province capital
+gdpGrowth[ , city := Region ]
+test <- gdpGrowth$Region == "Liaoning"
+gdpGrowth[test, city := "Shenyang"]
+test <- gdpGrowth$Region == "Guangdong"
+gdpGrowth[test, city := "Guangzhou" ]
+test <- gdpGrowth$Region == "Sichuan"
+gdpGrowth[test, city := "Chengdu"]
+```
+
+
+
+
+```{r exploreGDP}
+qplot(data = gdpGrowth, x = Year, y = provincial.gdp.Growth, facets = city ~ ., col = city, main = "GDP Growth",geom = "path")
+```
+
+
+
+
+
+## Conclusions
+We have now two clean datasets with PM2.5 readings for new year's eve and new year's day as well as GDP growth for the provinces concerned.
+
+Let's save the data for next post
+
+```{r savedata}
+save(gdpGrowth, aqicny, file = "./data/gqp-aqi-part1.Rda")
+```
+
+
+
