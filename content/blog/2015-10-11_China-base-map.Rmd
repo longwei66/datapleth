@@ -9,8 +9,6 @@ output: html_document
 ---
 
 
-
-## Objective
 In this article we are going to plot a simple map of China with different levels of subdivisions using both base and ggplot2 systems.
 
 In a nutshell :
@@ -46,6 +44,7 @@ library(sp)
 library(ggplot2)
 library(plyr)
 library(dplyr)
+library(RColorBrewer)
 ```
 
 ### About R SpatialPolygonsDataFrame
@@ -178,12 +177,12 @@ For this version we use the geom_map() function.
 
 ```{r firstChinaMapggplot, cache=TRUE, fig.width=9}
 ## Now we can make a simple map
-g <- ggplot()
-g <- g + geom_map(data = ChinaLevel1Data, aes(map_id = id, fill = ENGTYPE_1, col = TYPE_1), map = ChinaLevel1dF)
-g <- g + expand_limits(x = ChinaLevel1dF$long, y =  ChinaLevel1dF$lat)
-g <- g + coord_equal()
-g <- g + labs(x="Longitude", y="Latitude", title="Map of China level 1 subdivisions per type (using ggplot)")
-g <- g + theme_bw()
+g <- ggplot() +
+    geom_map(data = ChinaLevel1Data, aes(map_id = id, fill = ENGTYPE_1, col = TYPE_1), map = ChinaLevel1dF) +
+    expand_limits(x = ChinaLevel1dF$long, y =  ChinaLevel1dF$lat) +
+    coord_equal() +
+    labs(x="Longitude", y="Latitude", title="Map of China level 1 subdivisions per type (using ggplot)") +
+    theme_bw()
 print(g)
 ```
 

@@ -49,6 +49,8 @@ library(ggthemes)
 library(reshape2)
 library(data.table)
 library(rvest) # for webscrapping
+library(plotly)
+library(RColorBrewer)
 # Set-up locale for date format processing
 Sys.setlocale("LC_ALL","C")
 ```
@@ -107,14 +109,24 @@ a recurring pattern with peak of pollution around midnight !
 ```{r plot aqiNyear, message=FALSE, warning=FALSE, fig.height=6}
 g <- ggplot(data = aqicny) +
   theme_tufte() + theme(legend.position = "none") +
-  geom_point(aes( x = time,y = pm2.5, col = year), size = 0.5) +
+  geom_point(aes( x = time,y = pm2.5, col = city), size = 0.5) +
   geom_vline(xintercept = 0, color = "grey") +
   facet_grid(facets = city ~ year) +
   ggtitle("Peak of pm2.5 during chinese new year eve (fireworks)") +
   xlab("Hours from new year's midnight") + 
   theme(axis.text.x = element_text(angle = 90)) +
-  ylab("pm2.5 in micro g/m3")
-g
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 0, l = 0))) +
+  ylab("pm2.5 in micro g/m3") +
+  scale_color_brewer(palette="Dark2") #Dark2 as alternative
+p <- plotly::ggplotly(g)
+
+## Fix plotly label spacing
+## thanks : 
+## https://stackoverflow.com/questions/42763280/r-ggplot-and-plotly-axis-margin-wont-change
+p[['x']][['layout']][['annotations']][[1]][['y']] <- -0.06
+p[['x']][['layout']][['annotations']][[2]][['x']] <- -0.06
+p %>% config(displayModeBar = F) 
+#%>% layout(margin = list(l = 75))
 ```
 
 
@@ -167,18 +179,23 @@ gdpGrowth[test, city := "Chengdu"]
 
 
 
-```{r exploreGDP, echo=TRUE, message=FALSE, warning=FALSE, fig.width=3, fig.align='center'}
+```{r exploreGDP, echo=TRUE, message=FALSE, warning=FALSE, fig.align='center'}
 g <- ggplot(data = gdpGrowth, aes( x = Year,y = provincial.gdp.Growth), group = city) +
   theme_tufte() + theme(legend.position = "none") +
-  geom_segment( aes(x=Year, xend=Year, y=0, yend=provincial.gdp.Growth, group = city)) +
-  geom_point( aes(col = city), size=1, fill=alpha("grey", 0.3), alpha=0.7, shape=21, stroke=1) +
+  geom_segment( aes(x=Year, xend=Year, y=0, yend=provincial.gdp.Growth, group = city), color = "grey") +
+  geom_point(aes(col = city)) +
+  scale_color_brewer(palette="Dark2") +
   geom_hline(yintercept = 0, color = "grey") +
-  facet_grid(facets = city ~ .) +
+  facet_wrap(facets = city ~ ., nrow = 1) +
   ggtitle("GDP Growth of associated province") +
   xlab("Year") + 
   theme(axis.text.x = element_text(angle = 90)) +
-  ylab("GDP growth in %")
-g
+  ylab("Provincial GDP growth in %")
+p <- plotly::ggplotly(g)
+## plotly label spacing
+p[['x']][['layout']][['annotations']][[1]][['y']] <- -0.15
+p[['x']][['layout']][['annotations']][[2]][['x']] <- -0.04
+p %>% config(displayModeBar = F)
 ```
 
 

@@ -8,8 +8,8 @@ banner: "img/illustrations/hosea-georgeson-iF2IHS0RVGM-unsplash.jpg"
 output: html_document
 ---
 
-## Objective
-This is a short article to briefly describe the set of tools, software which are used by chinaPleth for data processing, statistical computing and publishing on this blog.
+
+This is a short article to briefly describe the set of tools, software which are used by dataapleth.io for data processing, statistical computing and publishing on this blog.
 
 In a nutshell :
 
