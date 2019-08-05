@@ -37,7 +37,7 @@ two chains of characters
 ### Dependencies
 We will need few standard packages as loaded bellow.
 
-```{r libLoading, message=FALSE}
+```{r libLoading, message=FALSE, warning=TRUE}
 library(maptools)
 library(reshape2)
 library(grid)
@@ -46,7 +46,6 @@ library(ggplot2)
 library(jsonlite)
 library(Amelia)
 library(OpenStreetMap)
-library(rvest)
 library(stringdist)
 library(grid)
 ```
@@ -116,14 +115,14 @@ We update column order to get a clearer view when comparing data.
 ```{r rearrangeIATA}
 # reorder
 IATA <- dplyr::select(IATA,
-        IATA.FAA, ICAO.x, ICAO.y,
-        name.x, name.y, city.x, city.y,
-        latitude.deg.x, latitude.deg.y,
-        longitude.deg.x, longitude.deg.y,
-        elevation.m.x, elevation.m.y,
-        category.x, category.y,
-        region.name, type.airport, scheduled.service, airport.wikipedia.link
-        ) 
+                      IATA.FAA, ICAO.x, ICAO.y,
+                      name.x, name.y, city.x, city.y,
+                      latitude.deg.x, latitude.deg.y,
+                      longitude.deg.x, longitude.deg.y,
+                      elevation.m.x, elevation.m.y,
+                      category.x, category.y,
+                      region.name, type.airport, scheduled.service, airport.wikipedia.link
+) 
 ```
 
 ### Fixing ICAO codes  
@@ -199,61 +198,10 @@ print(g)
 ```
 
 The map above shows there are significant error between the two data sets, now
-let's sample few cases to check which data set is probably the most accurate.
+let's sample one case to check which data set is probably the most accurate.
 We use for that the `OpenStreetMap` package to display side by side satellite 
 images around the latitude and longitude coordinates of the airport in both data
-set for the airport with largest distance. We reuse the function `multiplot()` 
-available 
-[here](http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_%28ggplot2%29/)
-to display images side by side (OF vs. OA)
-
-```{r multiplot, echo=FALSE}
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-
-  numPlots = length(plots)
-
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                    ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-
- if (numPlots==1) {
-    print(plots[[1]])
-
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-```
-
+set for the airport with largest distance.
 
 ```{r checkLocation, message=FALSE, fig.width=3, fig.height=3}
 mapAirport <- function(
@@ -262,31 +210,35 @@ mapAirport <- function(
   delta_lon=0.06,
   tiles=15, t="osm", #t="bing",
   title = "my title"
-  ) {
-    map = openmap(c(lat= lat-delta_lat,   lon= long-delta_lon),
-                  c(lat= lat+delta_lat,   lon= long+delta_lon),
-                  minNumTiles=tiles,type=t)
-    plot(map)
+) {
+  map = openmap(c(lat= lat-delta_lat,   lon= long-delta_lon),
+                c(lat= lat+delta_lat,   lon= long+delta_lon),
+                minNumTiles=tiles,type=t)
+  plot(map)
 }
 
-toCheck <- dplyr::select(IATA[dist1 > 0.3 & dist2 > 0.3,], IATA.FAA, ICAO, latitude.deg.x, longitude.deg.x, latitude.deg.y,  longitude.deg.y)
+toCheck <- dplyr::select(IATA[dist1 > 0.3 & dist2 > 0.3,],
+                         IATA.FAA, ICAO, 
+                         latitude.deg.x, longitude.deg.x,
+                         latitude.deg.y,  longitude.deg.y)
 
-for(i in 1:nrow(toCheck)){
-        p1 <- mapAirport(
-          long = toCheck[i,]$longitude.deg.x, lat = toCheck[i,]$latitude.deg.x,
-          title = paste("OA", toCheck[i,]$IATA.FAA, "-", toCheck[i,]$ICAO)
-          )
-       p2 <- mapAirport(
-         long = toCheck[i,]$longitude.deg.y, lat = toCheck[i,]$latitude.deg.y,
-         title = paste("OF:", toCheck[i,]$IATA.FAA, "-", toCheck[i,]$ICAO)
-         )
-       multiplot(p1,p2, cols=2)
-        }
+for(i in 1){
+  p1 <- mapAirport(
+    long = toCheck[i,]$longitude.deg.x, lat = toCheck[i,]$latitude.deg.x,
+    title = paste("OA", toCheck[i,]$IATA.FAA, "-", toCheck[i,]$ICAO)
+  )
+  print(p1)
+  p2 <- mapAirport(
+    long = toCheck[i,]$longitude.deg.y, lat = toCheck[i,]$latitude.deg.y,
+    title = paste("OF:", toCheck[i,]$IATA.FAA, "-", toCheck[i,]$ICAO)
+  )
+  print(p2)
+}
 ```
 
 As a conclusion for this part, OA seems to be more accurate than OF regarding 
 the airport longitude and latitude. We decide to keep OA data and drop OF data.
-**note** we should confirm that googlemap satellite is accurate in China and 
+**note** we should confirm that openstreetmap satellite is accurate in China and 
 there is not shift phenomenon. 
 
 ```{r fixLocation, message=FALSE}
@@ -337,16 +289,16 @@ elevation value for a given set of latitude / longitude.
 api_key <- "lubGnrGVymuYM1DU9Dqu8grqy9sMmvJhd25RPHmandKU0DfTuGcjbz3KgDs4vPIk"
 
 getElevation <- function(lat,long) {
-        lat <- as.numeric(lat)
-        long <- as.numeric(long)
-        # elevation API
-        baseUrl <- "https://api.jawg.io/elevations?locations="
-        Url <- paste(baseUrl, lat, "," , long, "&access-token=", api_key, sep = "")
-        jsonData <- fromJSON(Url)
-        Sys.sleep(0.3)
-        elevation <- jsonData$elevation
-        elevation
-        #Url
+  lat <- as.numeric(lat)
+  long <- as.numeric(long)
+  # elevation API
+  baseUrl <- "https://api.jawg.io/elevations?locations="
+  Url <- paste(baseUrl, lat, "," , long, "&access-token=", api_key, sep = "")
+  jsonData <- fromJSON(Url)
+  Sys.sleep(0.1)
+  elevation <- jsonData$elevation
+  elevation
+  #Url
 }
 ## get elevation for all aiports
 #IATA$elevationCheck <- 1
@@ -394,8 +346,8 @@ Let's now save the different objects to be reused in the next part of this post.
 ```{r saveObjects, cache=FALSE}
 save( list = c("IATA", 
                "airports_2_check"
-               ),
-      file = "./data/chinese-airports-part-4.Rda")
+),
+file = "./data/chinese-airports-part-4.Rda")
 ```
 
 
