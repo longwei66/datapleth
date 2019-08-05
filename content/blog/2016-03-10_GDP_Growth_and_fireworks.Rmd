@@ -106,7 +106,7 @@ aqicny[ , year := as.factor(year) ]
 Let's visualise the evolution of particles during this period. We clearly notice
 a recurring pattern with peak of pollution around midnight !
 
-```{r plot aqiNyear, message=FALSE, warning=FALSE, fig.height=6}
+```{r plot aqiNyear, message=FALSE, warning=FALSE}
 g <- ggplot(data = aqicny) +
   theme_tufte() + theme(legend.position = "none") +
   geom_point(aes( x = time,y = pm2.5, col = city), size = 0.5) +

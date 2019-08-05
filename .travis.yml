@@ -40,7 +40,7 @@ script:
   - Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
   - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
   - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
-  - Rscript -e 'install.packages(c("plotly", "RColorBrewer"))'
+  - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML"))'
   - Rscript -e 'blogdown::install_hugo()'
   - Rscript -e 'blogdown::build_site()'
   
