@@ -26,9 +26,11 @@ and
 sets by IATA.FAA code and will clean / fix missing data. We will create the
 separate data set with the complement which will be fixed in next part.
 
-In order to compare and fix missing or wrong data we are going to use different tools :  
+In order to compare and fix missing or wrong data we are going to use different
+tools :  
 
-- `stringdist` from the package of the same name to check the distance between two chains of characters
+- `stringdist` from the package of the same name to check the distance between
+two chains of characters
 - the Google map API which give back elevation for a set of longitude / latitude
 
 
@@ -293,11 +295,15 @@ IATA$longitude.deg <- IATA$longitude.deg.x
 IATA <- dplyr::select(IATA, -latitude.deg.x, -latitude.deg.y, -longitude.deg.x, -longitude.deg.y)
 ```
 
-Nevertheless as shown in the case of ZLXH airport the data of OA seems inaccurate. Further check is probably needed. **note 2** Comparison is done here manually, we will see in another post how to make this detection using machine learning algorithms.
+Nevertheless as shown in the case of ZLXH airport the data of OA seems 
+inaccurate. Further check is probably needed. **note 2** Comparison is done here
+manually, we will see in another post how to make this detection using machine
+learning algorithms.
 
 
 ### Fixing categories
-They are same in both data sets except the following. We decide to keep OF categories.
+They are same in both data sets except the following. We decide to keep OF
+categories.
 
 ```{r fixCat}
 ## mismatch in category
@@ -311,16 +317,19 @@ missmap(IATA)
 
 
 ### Fixing elevation.m data  
-As we have decided to drop OF latitude and longitude we should also drop the elevation from OF data set.
+As we have decided to drop OF latitude and longitude we should also drop the
+elevation from OF data set.
 
 ```{r full3}
 IATA$elevation.m <- IATA$elevation.m.x
 IATA <- dplyr::select(IATA, -elevation.m.y, -elevation.m.x)
 ```
 
-We have two actions to check and fix elevation data : check if the elevation is consistent with latitude and longitude and find missing elevation data.
+We have two actions to check and fix elevation data : check if the elevation is
+consistent with latitude and longitude and find missing elevation data.
 
-We can use for this purpose the jawq API which returns in JSON format the elevation value for a given set of latitude / longitude.
+We can use for this purpose the jawq API which returns in JSON format the
+elevation value for a given set of latitude / longitude.
 
 ```{r checkElevation, cache=TRUE}
 # function which return evelevation based on longitude / latitude
@@ -360,14 +369,23 @@ dist <- (abs(IATA$elevation.m - IATA$elevationCheck))
 hist(dist, breaks = 40)
 summary(dist)
 dplyr::select(IATA[dist > 30,], IATA.FAA, ICAO, elevation.m, elevationCheck, longitude.deg, latitude.deg)
-IATA[dist > 30,]$elevation.m.x <- IATA[dist > 30,]$elevationCheck
+```
+
+We have `r sum(dist > 30)` airports with more than 30 meters of elevation error.
+After checking, we find out that Jawg data is more accurate and use it for 
+these airports.
+
+```{r}
+
+IATA[dist > 30,]$elevation.m <- IATA[dist > 30,]$elevationCheck
 IATA <- dplyr::select(IATA, -elevationCheck)
 missmap(IATA)
 ```
 
-We have `r sum(dist > 30)` airports with more than 30 meters of elevation error. After checking, we find out that Google data is more accurate and use it for these 3 airports.
 
-We use information from [http://www.geoplaner.com/#Coordinate-Converter] for setting
+
+We use information from [http://www.geoplaner.com/#Coordinate-Converter] for
+setting
 
 
 ## Saving objects for next part
@@ -378,7 +396,6 @@ save( list = c("IATA",
                "airports_2_check"
                ),
       file = "./data/chinese-airports-part-4.Rda")
-#Sys.setenv(http_proxy="http://127.0.0.1:3213")
 ```
 
 

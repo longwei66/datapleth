@@ -4,7 +4,7 @@ date: "2016-05-21T13:39:46+02:00"
 author: "Datapleth.io"
 tags: ["weather", "aqi", "pm2.5", "web scrapping"]
 categories: ["air quality","china", "economy"]
-banner: "img/illustrations/chuttersnap-6ZJDhIjmqKk-unsplash.jpg"
+banner: "img/illustrations/joshua-hoehne-dHCOUMhVXeo-unsplash.jpg"
 output: html_document
 ---
 
@@ -86,7 +86,6 @@ uriCityWeather <- data.frame(
                 "http://www.weatherbase.com/weather/weatherhourly.php3?s=78295&cityname=Guangzhou-Guangdong-China&date=",
                 "http://www.weatherbase.com/weather/weatherhourly.php3?s=24345&cityname=Shenyang-Liaoning-China&date=",
                 "http://www.weatherbase.com/weather/weatherhourly.php3?s=94170&cityname=Paris-Ile-de-France-France&date="))
-
 ```
 
 # Preparing the scraping plan
@@ -94,14 +93,15 @@ uriCityWeather <- data.frame(
 We will need 3 years archives for our project, for each city. The code bellow
 configure the plan for scrapping. Basically we are going to loop this data frame
 to access each city records. For this post, we will just illustrate how to scrap
-the last 3 days of December month for each city in 2015, you can uncomment the 
+the last few days of December month for each city in 2015, you can uncomment the 
 code to get the full historical data.
 
 
 ```{r scrapingPlan, message=FALSE, warning=FALSE}
-# Build the list of dates to be collected
 # on this example we chose fews days at the end of 2015
-dates4scrapping <- seq(as.Date("2015-12-25"), as.Date("2015-12-31"), by="days")
+dates4scrapping <- seq(as.Date("2015-12-25"),
+                       as.Date("2015-12-31"),
+                       by="days")
 ```
 
 # Scraping the data
@@ -127,7 +127,7 @@ weatherbase_columns <-  c(
 )
 ```
 
-Then we loop for each year / city / number of days to collect. The main scraping
+The main scraping
 scrip is highlighted in the code bellow. The most important is to find the right
 Xpath expression to access the data table in the webpage. Several chrome or 
 firefox extensions can help (check firebug extensions).
@@ -135,14 +135,17 @@ firefox extensions can help (check firebug extensions).
 ```{r scrappingFunction}
 ## a Function to scrap the data
 getDayWeather <- function(
-        date,
-        city_name, 
-        city_base_url
+        date, # as yyyy-mm-dd
+        city_name, # name of the city, eg. Beijing
+        city_base_url # weatherbase base url
 ){
-        
         # Make base url
-        my_url <-paste(city_base_url,date,"&units=metric",sep = "")
-        message(paste0(city_name," - ", date)
+        my_url <-paste0(
+                city_base_url,
+                date,
+                "&units=metric"
+        )
+        message(paste0(city_name," - ", date))
         
         # Xpath to get the whole Table
         # //*[@id="left-weather-content"]/table[3]
@@ -172,14 +175,13 @@ getDayWeather <- function(
         } else {
                 DayWeather <- NULL
         }
-        
         return(DayWeather)
 }
 ```
 
 ## Scrapping
 
-```{r}
+```{r scrappingLoop, message=FALSE, warning=FALSE}
 weather_data <- list()
 for( my_city in uriCityWeather$city){
         my_data <- lapply(
@@ -218,23 +220,32 @@ Let's visualize a simple plot to check our scraped data
 
 ```{r finalChart, message=FALSE, warning=FALSE}
 g <- ggplot(data = weather_data) +
-        geom_line(aes(x = date_time, y = temperature, col = humidity)) +
-        facet_grid(facets = . ~ city) +
-        scale_color_gradient2(midpoint=50, low="blue", mid="green",high="red", space ="Lab" ) +
-        ggtitle("Temperature in few cities during the last 3 days of december 2015") +
-        theme(axis.text.x = element_text(angle = 90, hjust = 1))
-g
+  theme_tufte() + #theme(legend.position = "none") +
+  geom_line(aes(x = date_time, y = temperature, col = humidity)) +
+  geom_hline(yintercept = 0, color = "grey") +
+  facet_grid(facets = . ~ city) +
+  ggtitle("Temperature in few cities during the last few days of december 2015") +
+  xlab("Hours from new year's midnight") + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 0, l = 0))) +
+  ylab("Temperature in °C") +
+  scale_color_gradient2(midpoint=50, low="blue", mid="green",high="red", space ="Lab" )
+  # scale_color_brewer(palette="Dark2") #Dark2 as alternative
+
 ann_text <- data.frame(
         date_time = min(weather_data$date_time),
-        temperature = 22,
+        temperature = 18,
         lab = "Text",
         city = factor("Shenyang",levels = unique(weather_data$city))
-        )
+)
+
 g <- g + geom_text(data = ann_text, aes(x = date_time, y = temperature), 
-                   label = "(c) chinaPleth.io
+                   label = "(c) datapleth.io
 Data from
-www.weatherbase.com", col = "black", size = 3, hjust = 0)
+www.weatherbase.com", col = "black", size = 2, hjust = 0)
 g
+
+
 ```
 
 # Conclusion
