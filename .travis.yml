@@ -31,9 +31,11 @@ script:
 - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
 - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
 - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
+- Rscript -e 'install.packages(c("glue","raster","png","purrr","curl"))'
 - Rscript -e 'blogdown::install_hugo()'
 - Rscript -e 'blogdown::build_site()'
 after_success:
 - bash _scripts/deploy.sh
 env:
   secure: p/1LnFQbraxVITSJeeABtPuWGNjsB/fxswyeSfOVqUPsowGTKG4uvsGYJ2NorD92kjNZI/If23x8C9kzzgX0G37WbdevKX6kVEm3LlVN1++ULOLoAJSvTaztcyvZwIKap8oHEce917Jq1fhiz7Zl000OiCOBBbQJsbbHOiZfOHSkgQ5awF/U0pSJXosxC7aIESrHhbI26xa6Ev1JDwe4OnTlhqAXqa5SJV4kCHEYYuY2SdBhwkjPm0B/0NqTiwPFdS9Rwr1qm0uNNUNw7GHq9WoV6dI16jYqXNzaQXGT2QUeByrz6k62gF4pAa3OKMm1gwsBeyUr7HJNzy+f4WgwKFIqJK1MnL5t+K2yfyKBRsZFEVOMSxngqPog2iMzQauRiJavuWEV4IFhCeLmoWpIlgvnOsrXsfiIpDV35PsaLs6NjiXeJnQtWEBWVMYvtWAqFFeW93BitA71JCySnbTowtddTVcbIWR5GKbkfm0RqypZ6M5HZtLs6jxulufQvUZCRYDbY02NTtKJns13fluj8qJE4N86PIZRCa3qbGH9apLis9Bo+a/ChMpAvA4ZlyDTQYogXYLRBktMiKVb5FIEvZWVAQV0kJVy4VoRwu1VFlPEVsz7BIyF1Wmhk8N3UqlezkOdtm/7RfICDgVQo0TNSYHuLx1tYK4z0K20ZVjxx/c=
+  secure: MmbXszVNtnyM9xwKf+SrecyQyXBRAqeoLCweFHpdd615GLWlGDMSCQwfo0CQTitxzWXTWjZQKxwxBX2uEpLvFLwgyhsETxDFGuNuzGtYqAsCFIcorBlM4JYD22j7RQZH01igbzBqCmzA2GJNQJ8MILRmAVrX4GrSzDBRHRQ2fWnd5YzRxpi3K1VGSBikrbdgs5BfdeZxgwP/Nh7iQ66oWx4nKWn2TG2v/oWut51+nBrXiHPuLdQXK7jkCejxPfc910vrqPUQiYT7U2ajb7ds7JF6+qlftWKbDX5zcaDCinOvdeBaweiyF5ZCoJZrEtEbOsYRXs/IZUjGMwsveo+dRw39BaFg+tcWSsJabqm7mW/XonaHs+Q/ivPWYL8ZGIEVni+m3GtzPhfFjIzdJT4t+Wzm2IpCrkyvbpSrIcJ1gljaHt8DGuQo656ESjuex1RR2nXkF94o/omaJy66koBMCItZZR1LH6gdIggYZ0f55bah3hldf4a3nAuOSrePx6Xz97+5BpX+FDAGpQ/YcMI6u3a6U2+DAXcOocZQMDLtYbL+KHYQPXKc0/MClMN19wYzPXS0jvb1tmjwoRsUWWtIJTZN8ZZ87lM3Y3Ao31h9ErFn778gPkAcSGWdjKBzIC/WHADSwN4Rlc+A5uZVbC1A6MPKv0iyPPRg/IZYGU01yoI=

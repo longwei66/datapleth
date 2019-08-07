@@ -1,0 +1,80 @@
+---
+title: "Test API Mapbox"
+date: "2019-08-07T13:39:46+02:00"
+author: "Datapleth.io"
+tags: ["test", "api", "travis"]
+categories: ["geography"]
+banner: "blog/2016-01-01_China_airports_part_4_files/figure-html/mapAO2-2.png"
+output: html_document
+---
+
+
+In this post we are going to make a test for satellite imagery with mapbox API.
+
+```{r}
+library(slippymath)
+library(glue)
+library(raster)
+library(png)
+library(purrr)
+library(curl)
+```
+
+
+
+```{r}
+api_mapbox <- Sys.getenv("API_MAPBOX")
+substring(text = api_mapbox, first = 1, last = 3)
+
+my_long <- -21.520040
+my_lat <- 65.781181
+delta_long <- 0.01
+delta_lat <- 0.005
+zoom_level <- 14
+
+myBbox <- c(xmin = my_long - delta_long,
+            ymin = my_lat - delta_lat,
+            xmax = my_long + delta_long,
+            ymax = my_lat + delta_lat
+)
+# make the gridding
+myBboxTile <- slippymath::bbox_tile_query(bbox = myBbox)
+myGrid <- slippymath::bbox_to_tile_grid(myBbox, zoom = zoom_level)
+
+```
+
+```{r}
+## =====================================================================
+##  Get satellite data
+## =====================================================================
+setwd(dir = "./sat/")
+
+mapbox_query_string <-
+    paste0(
+        #"https://api.mapbox.com/v4/mapbox.satellite/{zoom}/{x}/{y}.jpg90",
+        "https://api.mapbox.com/v4/mapbox.satellite/{zoom}/{x}/{y}@2x.jpg90",
+        "?access_token=",
+        api_mapbox
+    )
+myTiles <-
+    pmap(.l = myGrid$tiles,
+         zoom = myGrid$zoom,
+
+         .f = function(x, y, zoom){
+             outfile <- glue("{x}_{y}.jpg")
+             curl_download(url = glue(mapbox_query_string),
+                           destfile = outfile)
+             outfile
+         }
+    )
+
+mySat <- slippymath::compose_tile_grid(myGrid, myTiles)
+#raster::plot(mySat)
+
+## Go back to root directory
+setwd(dir = "../")
+raster_to_png(mySat, "final.png")
+knitr::include_graphics("final.png")
+#overlay_image2 <- png::readPNG("final.png")
+```
+
