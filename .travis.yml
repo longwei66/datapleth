@@ -1,13 +1,10 @@
 language: r
 dist: bionic
 latex: false
-
 branches:
   only:
-    - master
-
+  - master
 sudo: required
-
 apt_packages:
 - default-jre
 - default-jdk
@@ -17,32 +14,26 @@ apt_packages:
 - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
 - fonts-cwtex-ming fonts-cwtex-yen
 - libgdal-dev libproj-dev
-
-
 cache:
-  packages: yes
+  packages: true
   directories:
-    - $HOME/bin
-
+  - "$HOME/bin"
 addons:
-  ssh_known_hosts: 
+  ssh_known_hosts:
   - datapleth.io
   - 188.166.216.253
-
 before_install:
 - bash _scripts/install.sh
-
-
-
 script:
-  - Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
-  - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
-  - Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
-  - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
-  - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
-  - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML"))'
-  - Rscript -e 'blogdown::install_hugo()'
-  - Rscript -e 'blogdown::build_site()'
-  
+- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
+- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
+- Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
+- Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
+- Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
+- Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
+- Rscript -e 'blogdown::install_hugo()'
+- Rscript -e 'blogdown::build_site()'
 after_success:
-  - bash _scripts/deploy.sh
+- bash _scripts/deploy.sh
+env:
+  secure: p/1LnFQbraxVITSJeeABtPuWGNjsB/fxswyeSfOVqUPsowGTKG4uvsGYJ2NorD92kjNZI/If23x8C9kzzgX0G37WbdevKX6kVEm3LlVN1++ULOLoAJSvTaztcyvZwIKap8oHEce917Jq1fhiz7Zl000OiCOBBbQJsbbHOiZfOHSkgQ5awF/U0pSJXosxC7aIESrHhbI26xa6Ev1JDwe4OnTlhqAXqa5SJV4kCHEYYuY2SdBhwkjPm0B/0NqTiwPFdS9Rwr1qm0uNNUNw7GHq9WoV6dI16jYqXNzaQXGT2QUeByrz6k62gF4pAa3OKMm1gwsBeyUr7HJNzy+f4WgwKFIqJK1MnL5t+K2yfyKBRsZFEVOMSxngqPog2iMzQauRiJavuWEV4IFhCeLmoWpIlgvnOsrXsfiIpDV35PsaLs6NjiXeJnQtWEBWVMYvtWAqFFeW93BitA71JCySnbTowtddTVcbIWR5GKbkfm0RqypZ6M5HZtLs6jxulufQvUZCRYDbY02NTtKJns13fluj8qJE4N86PIZRCa3qbGH9apLis9Bo+a/ChMpAvA4ZlyDTQYogXYLRBktMiKVb5FIEvZWVAQV0kJVy4VoRwu1VFlPEVsz7BIyF1Wmhk8N3UqlezkOdtm/7RfICDgVQo0TNSYHuLx1tYK4z0K20ZVjxx/c=

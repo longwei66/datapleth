@@ -288,6 +288,9 @@ elevation value for a given set of latitude / longitude.
 # https://www.jawg.io/docs/apidocs/elevation/#request-query-parameters
 api_key <- "lubGnrGVymuYM1DU9Dqu8grqy9sMmvJhd25RPHmandKU0DfTuGcjbz3KgDs4vPIk"
 
+api_key2 <- Sys.getenv("API_JAWG")
+api_key2
+
 getElevation <- function(lat,long) {
   lat <- as.numeric(lat)
   long <- as.numeric(long)
