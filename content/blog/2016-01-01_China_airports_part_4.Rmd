@@ -203,7 +203,7 @@ We use for that the `OpenStreetMap` package to display side by side satellite
 images around the latitude and longitude coordinates of the airport in both data
 set for the airport with largest distance.
 
-```{r checkLocation, message=FALSE, fig.width=3, fig.height=3}
+```{r checkLocation, eval=FALSE, fig.height=3, fig.width=3, message=FALSE, include=FALSE}
 mapAirport <- function(
   long, lat,
   delta_lat=0.06,
