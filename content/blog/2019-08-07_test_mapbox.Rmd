@@ -73,8 +73,11 @@ mySat <- slippymath::compose_tile_grid(myGrid, myTiles)
 
 ## Go back to root directory
 setwd(dir = "../")
-raster_to_png(mySat, "final.png")
-knitr::include_graphics("final.png")
+raster_to_png(mySat, "../../static/img/md/test_mapbox.png")
+knitr::include_graphics("/img/md/test_mapbox.png")
 #overlay_image2 <- png::readPNG("final.png")
 ```
+
+
+![Test Image](/img/md/test_mapbox.png)
 
