@@ -11,7 +11,7 @@ output: html_document
 
 In this post we are going to make a test for satellite imagery with mapbox API.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(slippymath)
 library(glue)
 library(raster)
@@ -43,7 +43,7 @@ myGrid <- slippymath::bbox_to_tile_grid(myBbox, zoom = zoom_level)
 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ## =====================================================================
 ##  Get satellite data
 ## =====================================================================
@@ -73,11 +73,14 @@ mySat <- slippymath::compose_tile_grid(myGrid, myTiles)
 
 ## Go back to root directory
 setwd(dir = "../")
-raster_to_png(mySat, "../../static/img/md/test_mapbox.png")
-knitr::include_graphics("/img/md/test_mapbox.png")
+#raster_to_png(mySat, "../../static/img/md/test_mapbox.png")
+raster_to_png(mySat, "./img/test_mapbox_0.png")
+#knitr::include_graphics("/img/md/test_mapbox.png")
+knitr::include_graphics("/blog/img/test_mapbox_0.png")
 #overlay_image2 <- png::readPNG("final.png")
+
 ```
 
 
-![Test Image](/img/md/test_mapbox.png)
+![Test Image](/blog/img/test_mapbox_0.png)
 
