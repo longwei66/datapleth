@@ -48,6 +48,14 @@ library(Amelia)
 library(OpenStreetMap)
 library(stringdist)
 library(grid)
+library(knitr)
+## For satellite image analysis
+library(slippymath)
+library(glue)
+library(raster)
+library(png)
+library(purrr)
+library(curl)
 ```
 
 ### Loading part 3 objects
@@ -199,40 +207,120 @@ print(g)
 
 The map above shows there are significant error between the two data sets, now
 let's sample one case to check which data set is probably the most accurate.
-We use for that the `OpenStreetMap` package to display side by side satellite 
-images around the latitude and longitude coordinates of the airport in both data
-set for the airport with largest distance.
+We used for that the `OpenStreetMap` package to display side by side satellite 
+images around the latitude and longitude. This worked but for some unknown
+reasons some tiles cannot be downloaded from travis.
+So I changed strategy, using the API of mapbox instead but with longer and more
+complicated code.
 
-```{r checkLocation, eval=FALSE, fig.height=3, fig.width=3, message=FALSE, include=FALSE}
+```{r checkLocation, echo=TRUE}
+# get API from system environment
+api_mapbox <- Sys.getenv("API_MAPBOX")
+
+# set-up size of the bounding box to be visualized.
+delta_lon <- 0.01
+delta_lat <- 0.005
+zoom_level <- 14
+
+
 mapAirport <- function(
-  long, lat,
-  delta_lat=0.06,
-  delta_lon=0.06,
-  tiles=15, t="osm", #t="bing",
-  title = "my title"
+  my_lon, my_lat,
+  my_delta_lat = 0.01,
+  my_delta_lon = 0.005,
+  my_zoom_level = 14,
+  airport_id = 1,
+  my_api_mapbox
 ) {
-  map = openmap(c(lat= lat-delta_lat,   lon= long-delta_lon),
-                c(lat= lat+delta_lat,   lon= long+delta_lon),
-                minNumTiles=tiles,type=t)
-  plot(map)
+  ## Define bounding box
+  myBbox <- c(xmin = my_lon - my_delta_lon,
+              ymin = my_lat - my_delta_lat,
+              xmax = my_lon + my_delta_lon,
+              ymax = my_lat + my_delta_lat
+  )
+  # make the gridding
+  myBboxTile <- slippymath::bbox_tile_query(bbox = myBbox)
+  myGrid <- slippymath::bbox_to_tile_grid(myBbox, zoom = my_zoom_level)
+  
+  
+  ## Download satellite data
+  setwd(dir = "./sat/")
+  
+  mapbox_query_string <-
+    paste0(
+      "https://api.mapbox.com/v4/mapbox.satellite/{zoom}/{x}/{y}.jpg90",
+      #"https://api.mapbox.com/v4/mapbox.satellite/{zoom}/{x}/{y}@2x.jpg90",
+      "?access_token=",
+      my_api_mapbox
+    )
+  
+  
+  
+  ## Function to download Tiles
+  myTiles <-
+    pmap(.l = myGrid$tiles,
+         zoom = myGrid$zoom,
+         
+         .f = function(x, y, zoom){
+           outfile <- glue("{x}_{y}.jpg")
+           curl_download(url = glue(mapbox_query_string),
+                         destfile = outfile)
+           outfile
+         }
+    )
+  
+  
+  mySat <- slippymath::compose_tile_grid(myGrid, myTiles)
+  #raster::plot(mySat)
+  
+  ## Go back to root directory
+  setwd(dir = "../")
+  #raster_to_png(mySat, "../../static/img/md/test_mapbox.png")
+  raster_to_png(mySat, paste0("./img/airport_",airport_id,".png"))
+  #knitr::include_graphics("/img/md/test_mapbox.png")
+  #knitr::include_graphics(paste0("/blog/img/airport_",airport_id,".png"))
+  return(paste0("/blog/img/airport_",airport_id,".png"))
+  #overlay_image2 <- png::readPNG("final.png")
 }
 
-toCheck <- dplyr::select(IATA[dist1 > 0.3 & dist2 > 0.3,],
-                         IATA.FAA, ICAO, 
+toCheck <- dplyr::select(IATA[dist1 > 0.05 & dist2 > 0.05,],
+                         IATA.FAA, ICAO, airport.wikipedia.link,
                          latitude.deg.x, longitude.deg.x,
                          latitude.deg.y,  longitude.deg.y)
 
-for(i in 1){
-  p1 <- mapAirport(
-    long = toCheck[i,]$longitude.deg.x, lat = toCheck[i,]$latitude.deg.x,
-    title = paste("OA", toCheck[i,]$IATA.FAA, "-", toCheck[i,]$ICAO)
+kable(toCheck)
+```
+
+
+
+```{r showSatellite, results="asis"}
+list_img <- NULL
+
+for( i in 1:7){
+  cat(paste0("<br/><br/><b>",toCheck[i,]$IATA.FAA,
+             " - <a href='",toCheck[i,]$airport.wikipedia.link,"'>",
+             toCheck[i,]$airport.wikipedia.link,"</a></b></br>\n"))
+  a <- mapAirport(
+    my_lon = toCheck[i,]$longitude.deg.x,
+    my_lat = toCheck[i,]$latitude.deg.x,
+    my_delta_lat = delta_lat,
+    my_delta_lon = delta_lon,
+    my_zoom_level = zoom_level,
+    airport_id = 2*i,
+    my_api_mapbox = api_mapbox
   )
-  print(p1)
-  p2 <- mapAirport(
-    long = toCheck[i,]$longitude.deg.y, lat = toCheck[i,]$latitude.deg.y,
-    title = paste("OF:", toCheck[i,]$IATA.FAA, "-", toCheck[i,]$ICAO)
+  #cat(paste0("![",toCheck[i,]$IATA.FAA,"_OA](", a, " =300x)\n"))
+  cat(paste0("<img src=",a," alt='",toCheck[i,]$IATA.FAA,"_OA'"," width='300'/>\n"))
+  b <- mapAirport(
+    my_lon = toCheck[i,]$longitude.deg.y,
+    my_lat = toCheck[i,]$latitude.deg.y,
+    my_delta_lat = delta_lat,
+    my_delta_lon = delta_lon,
+    my_zoom_level = zoom_level,
+    airport_id = 2*i+1,
+    my_api_mapbox = api_mapbox
   )
-  print(p2)
+  #cat(paste0("![",toCheck[i,]$IATA.FAA,"_OF](", b, " =300x)\n"))
+  cat(paste0("<img src=",b," alt='",toCheck[i,]$IATA.FAA,"_OF'"," width='300'/>\n"))
 }
 ```
 
