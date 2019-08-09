@@ -94,11 +94,18 @@ sum(OAout[!is.na(OAout$ICAO),] %in% OFout[!is.na(OFout$ICAO),])
 
 We have now three data sets to work on :  
 
-- `IATA` which contains common airports by IATA code between openflight and ourairport data set. We need to define a strategy to select or merge their parameters if data is different (which elevation choose when different, which name, etc...)
-- `OFout` airport from Openflight which have no match by IATA nor ICAO in ourairport data or no IATA/ICAO code.
-- `OAout` airport from ourairport which have no match by IATA nor ICAO in openflights data or no IATA/ICAO code
+- `IATA` which contains common airports by IATA code between openflight and 
+ourairport data set. We need to define a strategy to select or merge their 
+parameters if data is different (which elevation choose when different, which 
+name, etc...)
+- `OFout` airport from Openflight which have no match by IATA nor ICAO in
+ourairport data or no IATA/ICAO code.
+- `OAout` airport from ourairport which have no match by IATA nor ICAO in 
+openflights data or no IATA/ICAO code
 
-For the two last data set, we merge them and we will have to find a way to collect missing data and add these to IATA data set in the later part of this report.
+For the two last data set, we merge them and we will have to find a way to 
+collect missing data and add these to IATA data set in the later part of this
+report.
 
 ```{r actionPlan3}
 # add missing categories to OFout
@@ -139,7 +146,6 @@ are not found in Openflight data set (see previous missingness map)
 
 ```{r full1}
 IATA$ICAO <- IATA$ICAO.x
-is.na(IATA[is.na(IATA$ICAO.x),]$ICAO.y)
 IATA <- dplyr::select(IATA, -ICAO.x, -ICAO.y)
 missmap(IATA)
 ```
@@ -156,7 +162,7 @@ IATA[is.na(IATA$city.x),]$city.x <- IATA[is.na(IATA$city.x),]$city.y
 
 dist <- stringdist(IATA$city.x, IATA$city.y)
 hist(dist, breaks = 40)
-dplyr::select(IATA[dist > 0,], city.x, city.y, name.x)
+kable(dplyr::select(IATA[dist > 0,], city.x, city.y, name.x))
 
 IATA$city <- IATA$city.x
 IATA <- dplyr::select(IATA, -city.x, -city.y)
@@ -171,7 +177,7 @@ name.x is more detailed and better written. Except for Taoxian Airport.
 ```{r full5}
 dist <- stringdist(IATA$name.x, IATA$name.y)
 hist(dist, breaks = 40)
-head(dplyr::select(IATA[dist > 0,], name.x, name.y))
+kable(head(dplyr::select(IATA[dist > 0,], name.x, name.y)))
 IATA[IATA$name.x == "Taoxian Airport",]$name.x <- "Shenyang Taoxian International Airport"
 IATA$name <- IATA$name.x
 IATA <- dplyr::select(IATA, -name.x, -name.y)
@@ -190,16 +196,25 @@ dist2 <- abs(IATA$latitude.deg.x - IATA$latitude.deg.y)
 par(mfrow = c(1,2))
 hist(log(dist1), breaks = 40)
 hist(log(dist2), breaks = 40)
-summary(dist1)
-summary(dist2)
 
 
+toCheck <- dplyr::select(IATA[dist1 > 0.05 & dist2 > 0.05,],
+                         IATA.FAA, ICAO, airport.wikipedia.link,
+                         latitude.deg.x, longitude.deg.x,
+                         latitude.deg.y,  longitude.deg.y)
+
+kable(toCheck)
+```
+
+Let's now plot these airports.
+
+```{r mapToCheck}
 g <- ggplot() + theme_bw()
 ## airports with elevation
-g <- g + geom_point(data = IATA[dist1 > 0.01 & dist2 > 0.01,], aes(x = longitude.deg.x, y = latitude.deg.x), col = "firebrick", pch = 3)
+g <- g + geom_point(data = toCheck, aes(x = longitude.deg.x, y = latitude.deg.x), col = "firebrick", pch = 3)
 ## airport with 0 m  as elevation in red
-g <- g + geom_point(data = IATA[dist1 > 0.01 & dist2 > 0.01,], aes(x = longitude.deg.y, y = latitude.deg.y), col = "blue", pch = 1)
-g <- g + geom_text(data = IATA[dist1 > 0.01 & dist2 > 0.01,], aes(x = longitude.deg.x, y = latitude.deg.x, label=IATA.FAA), size = 3, vjust = -1)
+g <- g + geom_point(data = toCheck, aes(x = longitude.deg.y, y = latitude.deg.y), col = "blue", pch = 1)
+g <- g + geom_text(data = toCheck, aes(x = longitude.deg.x, y = latitude.deg.x, label=IATA.FAA), size = 3, vjust = -1)
 print(g)
 ```
 
@@ -218,7 +233,7 @@ api_mapbox <- Sys.getenv("API_MAPBOX")
 # set-up size of the bounding box to be visualized.
 delta_lon <- 0.01
 delta_lat <- 0.005
-zoom_level <- 14
+zoom_level <- 15
 
 
 mapAirport <- function(
@@ -279,13 +294,6 @@ mapAirport <- function(
   return(paste0("/blog/img/airport_",airport_id,".png"))
   #overlay_image2 <- png::readPNG("final.png")
 }
-
-toCheck <- dplyr::select(IATA[dist1 > 0.05 & dist2 > 0.05,],
-                         IATA.FAA, ICAO, airport.wikipedia.link,
-                         latitude.deg.x, longitude.deg.x,
-                         latitude.deg.y,  longitude.deg.y)
-
-kable(toCheck)
 ```
 
 
@@ -293,7 +301,7 @@ kable(toCheck)
 ```{r showSatellite, results="asis"}
 list_img <- NULL
 
-for( i in 1:7){
+for( i in 1:nrow(toCheck)){
   cat(paste0("<br/><br/><b>",toCheck[i,]$IATA.FAA,
              " - <a href='",toCheck[i,]$airport.wikipedia.link,"'>",
              toCheck[i,]$airport.wikipedia.link,"</a></b></br>\n"))
