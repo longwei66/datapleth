@@ -4,19 +4,17 @@ date: "2016-01-01T13:39:46+02:00"
 author: "Datapleth.io"
 tags: ["airports", "data"]
 categories: ["geography","china"]
-banner: "blog/2016-01-01_China_airports_part_4_files/figure-html/mapAO2-2.png"
+banner: "blog/img/airport_14.png"
 output: html_document
 ---
 
 
-## Introduction
-### Objective  
 One of the big problem for anybody interested in China and data science is the 
 availability of data sets. There are limited free resources available and they 
 are often incomplete or inaccurate. Getting data and especially cleaning data 
 becomes one of the biggest pain of data science applied to China.
 
-The objective of this group of post is to illustrate the problem and associated
+The objective of this series of post is to illustrate the problem and associated
 process on a specific example: plot a map of the airports of mainland China.
 
 In this forth part, we merge the two data obtained in
@@ -373,21 +371,22 @@ elevation value for a given set of latitude / longitude.
 
 ```{r checkElevation, cache=TRUE}
 # function which return evelevation based on longitude / latitude
-# https://www.jawg.io/docs/apidocs/elevation/#request-query-parameters
-api_key <- "lubGnrGVymuYM1DU9Dqu8grqy9sMmvJhd25RPHmandKU0DfTuGcjbz3KgDs4vPIk"
+# https://developers.google.com/maps/documentation/elevation/intro
+api_key <- Sys.getenv("API_GOOG_ELEVATION")
 
-api_key2 <- Sys.getenv("API_JAWG")
-api_key2
 
 getElevation <- function(lat,long) {
   lat <- as.numeric(lat)
   long <- as.numeric(long)
   # elevation API
-  baseUrl <- "https://api.jawg.io/elevations?locations="
-  Url <- paste(baseUrl, lat, "," , long, "&access-token=", api_key, sep = "")
+  #baseUrl <- "https://api.jawg.io/elevations?locations="
+  baseUrl <- "https://maps.googleapis.com/maps/api/elevation/json?locations="
+
+  Url <- paste(baseUrl, lat, "," , long, "&key=", api_key, sep = "")
+  
   jsonData <- fromJSON(Url)
-  Sys.sleep(0.1)
-  elevation <- jsonData$elevation
+  #Sys.sleep(1)
+  elevation <- jsonData$results$elevation
   elevation
   #Url
 }
