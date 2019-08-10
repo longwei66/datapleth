@@ -59,9 +59,7 @@ library(curl)
 ```{r loadAPIkeys}
 # get API from system environment
 api_mapbox <- Sys.getenv("API_MAPBOX")
-substr(api_mapbox,1,4)
 api_elevation <- Sys.getenv("API_GOOG_ELEVATION")
-substr(api_elevation,1,4)
 ```
 
 
@@ -306,7 +304,7 @@ mapAirport <- function(
 
 
 
-```{r showSatellite, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results="asis"}
+```{r showSatellite, echo=TRUE, message=FALSE, warning=FALSE, results="asis"}
 list_img <- NULL
 
 for( i in 1:nrow(toCheck)){
