@@ -56,6 +56,17 @@ library(purrr)
 library(curl)
 ```
 
+```{r loadAPIkeys}
+# get API from system environment
+api_mapbox <- Sys.getenv("API_MAPBOX")
+substr(api_mapbox,1,4)
+api_elevation <- Sys.getenv("API_GOOG_ELEVATION")
+substr(api_elevation,1,4)
+```
+
+
+
+
 ### Loading part 3 objects
 
 ```{r loadPart1, echo=TRUE,eval=TRUE}
@@ -227,9 +238,6 @@ So I changed strategy, using the API of mapbox instead but with longer and more
 complicated code.
 
 ```{r checkLocation, echo=TRUE}
-# get API from system environment
-api_mapbox <- Sys.getenv("API_MAPBOX")
-
 # set-up size of the bounding box to be visualized.
 delta_lon <- 0.01
 delta_lat <- 0.005
@@ -298,7 +306,7 @@ mapAirport <- function(
 
 
 
-```{r showSatellite, results="asis"}
+```{r showSatellite, eval=FALSE, include=FALSE, results="asis"}
 list_img <- NULL
 
 for( i in 1:nrow(toCheck)){
@@ -380,8 +388,6 @@ elevation value for a given set of latitude / longitude.
 ```{r checkElevation, cache=TRUE}
 # function which return evelevation based on longitude / latitude
 # https://developers.google.com/maps/documentation/elevation/intro
-api_key <- Sys.getenv("API_GOOG_ELEVATION")
-
 
 getElevation <- function(lat,long) {
   lat <- as.numeric(lat)
@@ -390,7 +396,7 @@ getElevation <- function(lat,long) {
   #baseUrl <- "https://api.jawg.io/elevations?locations="
   baseUrl <- "https://maps.googleapis.com/maps/api/elevation/json?locations="
 
-  Url <- paste(baseUrl, lat, "," , long, "&key=", api_key, sep = "")
+  Url <- paste(baseUrl, lat, "," , long, "&key=", api_elevation, sep = "")
   
   jsonData <- fromJSON(Url)
   #Sys.sleep(1)
