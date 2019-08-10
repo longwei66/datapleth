@@ -81,6 +81,3 @@ knitr::include_graphics("/blog/img/test_mapbox_0.png")
 
 ```
 
-
-![Test Image](/blog/img/test_mapbox_0.png)
-

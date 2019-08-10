@@ -306,7 +306,7 @@ mapAirport <- function(
 
 
 
-```{r showSatellite, eval=FALSE, include=FALSE, results="asis"}
+```{r showSatellite, echo=TRUE, message=FALSE, warning=FALSE, results="asis"}
 list_img <- NULL
 
 for( i in 1:nrow(toCheck)){
