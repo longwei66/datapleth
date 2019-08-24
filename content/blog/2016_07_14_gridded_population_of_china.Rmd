@@ -30,10 +30,8 @@ We need several R packages for this study.
 
 ```{r loadLibraries, message=FALSE, warning=FALSE}
 library(maptools)
-library(gtools)
 library(rgdal)
 library(raster)
-library(rasterVis)
 library(ggplot2)
 library(ggthemes)
 ```
@@ -71,7 +69,7 @@ download.file(
   mode = "w", cacheOK = TRUE
 )
 dens <- raster::raster("./data/chnds00g.asc")
-fromDisk(dens)
+raster::fromDisk(dens)
 ```
 
 
@@ -110,7 +108,7 @@ ChinaLevel1Data <- ChinaPolygonsLevel1@data
 ChinaLevel1Data$id <- ChinaLevel1Data$NAME_1
 
 # Fortify the data (polygon map as dataframe) using english names
-ChinaLevel1dF <- fortify(ChinaPolygonsLevel1, region = "NAME_1")
+ChinaLevel1dF <- ggplot2::fortify(ChinaPolygonsLevel1, region = "NAME_1")
 
 ## Merge polygons and associated data in one data frame by id (name of the province in chinese)
 ChinaLevel1 <- merge(ChinaLevel1dF, ChinaLevel1Data, by = "id")
@@ -123,7 +121,7 @@ ggplot in the next steps.
 
 ```{r}
 ## convert the raster to points (to plot with ggplot)
-raster_points_dens <- rasterToPoints(dens)
+raster_points_dens <- raster::rasterToPoints(dens)
 raster_points_dens <- data.frame(raster_points_dens)
 colnames(raster_points_dens) <-c('x','y','density')
 ```
