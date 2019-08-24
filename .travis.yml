@@ -31,7 +31,8 @@ script:
 - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
 - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
 - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
-- Rscript -e 'install.packages(c("slippymath","glue","raster","png","purrr","curl"))'
+- Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
+- Rscript -e 'install.packages(c("kableExtra"))'
 - Rscript -e 'blogdown::install_hugo()'
 - Rscript -e 'blogdown::build_site()'
 after_success:
