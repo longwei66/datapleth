@@ -1,23 +1,22 @@
 ---
-title: "About yield curve, summer 2019, part 1"
+title: "Do we have a yield curve problem ? (part 1)"
 date: "2019-08-17T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["getting data", "treasury"]
+tags: ["3d", "plotly"]
 categories: ["economy"]
-banner: "blog/2016-01-01_China_airports_part_4_files/figure-html/mapAO2-2.png"
+banner: "img/illustrations/datapleth-yield-curve.png"
 output: html_document
 ---
 
 
-It's summer 2019, the so called "yield curve" inversion is on the news, a great
-(as usual) nytimes inforgraphics is explaining what is at stake, to make it
-short, it's about prediction of economic future. The objective of these two
-posts is to replicate these visuals and to extend to other countries such as France.
-
-## Inspiration
+It's summer 2019, the so called "yield curve" inversion is on the news, a great 
+(as usual) nytimes inforgraphics is explaining what is at stake, to make it 
+short, it's about prediction of economic future. The objective of these posts is
+to propose alternatives to these visuals and to extend to other countries such
+as France.
 
 As per NY Times, in 
-[A 3-D View of a Chart That Predicts The Economic Future: The Yield Curve](https://www.nytimes.com/interactive/2015/03/19/upshot/3d-yield-curve-economic-growth.html) :
+[A 3-D View of a Chart That Predicts The Economic Future: The Yield Curve](https://www.nytimes.com/2019/08/15/upshot/inverted-yield-curve-bonds-football-analogy.html) :
 
 > The yield curve shows how much it costs the federal government to borrow money
 for a given amount of time, revealing the relationship between long- and 
@@ -26,10 +25,24 @@ holds in the future — how much inflation there will be, for example, and how
 healthy growth will be over the years ahead — all embodied in the price of money
 today, tomorrow and many years from now.
 
+We display a screenshot of the 3d curve bellow.
 
-## Getting the data
+<img src="/img/illustrations/nytimes-yield-curve.png" alt="3d yield curve from nytimes" width="700"/>
 
-### Load libraries
+The work done by the nytimes team is amazing, it's difficult to make 3d plots so
+easy to understand. However we see two main problems with this curve :
+
+1. The y axis (yield rate horizon), is distorted, 10 years interval between 20 
+and 30 years is seen as equivalent to the interval between 1 and 3 months.
+2. It's not very easy to see the inversion zones.
+
+We'll try to make an alternative version of the plot with different y axis and
+color scheme for the surface.
+
+
+## Preparation
+
+Let's as usual load the libraries we need.
 
 ```{r message=FALSE, warning=FALSE}
 library(xml2)
@@ -39,7 +52,7 @@ library(plotly)
 ```
 
 
-### USA data
+## Getting and cleaning the data for USA
 
 Data source for USA data is the U.S Department of the treasury (see [here](https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yieldYear&year=2019)). They provide the data as XML with one URL per year.
 
@@ -50,7 +63,8 @@ url_pattern_usa <- "https://data.treasury.gov/feed.svc/DailyTreasuryYieldCurveRa
 uri_usa <- paste0(url_pattern_usa, 1990:2019)
 ```
 
-We create a function to read the remote XML, parse it and convert it as a data.table.
+We create a function to read the remote XML, parse it and convert it as a
+data.table.
 
 ```{r message=FALSE, warning=FALSE}
 getXmlDataUsa <- function(url){
@@ -85,7 +99,8 @@ getXmlDataUsa <- function(url){
 }
 ```
 
-Now we are going to parse each of these files and bind them in one data.table
+Now we are going to parse each of these files and bind them in one data.table.
+This can take a bit of time depending on your connection and the remote site.
 
 ```{r message=FALSE, warning=FALSE}
 all_usa_data <- lapply(uri_usa, getXmlDataUsa)
@@ -105,7 +120,7 @@ all_usa_data_long <- data.table::melt(
     value.name = "rate")
 ```
 
-And we convert horizon to numerical values in months, add a data columne as 
+And we convert horizon to numerical values in months, add a data column as 
 numeric.
 
 ```{r message=FALSE, warning=FALSE}
@@ -125,11 +140,7 @@ all_usa_data_long[, horizon := as.numeric(as.character(horizon))]
 save(all_usa_data_long, file = "./data/all_usa_rate.Rda")
 ```
 
-We make a quick plot, it's always usefull to explore the data. Here we discover
-that there is a strange point on 2017-04-14 for which all rates for all horizons
-are equal to zero, we decide to remove these.
-Rates on 2 month are only avaible recently we decide to remove these as well.
-
+We make a quick plot, it's always usefull to explore the data. 
 
 ```{r message=FALSE, warning=FALSE}
 g <- ggplot(all_usa_data_long)
@@ -139,10 +150,27 @@ g <- g + geom_point(aes(x = NEW_DATE,
                     alpha = 0.5, size = 0.5)
 g <- g + facet_grid(facets =  horizon ~ . )
 g
+```
+
+Here we discover that there is a strange point on 2017-04-14 for which all rates
+for all horizons are equal to zero, we decide to remove these. Rates on 2 month 
+are only avaible recently we decide to remove these as well.
+
+```{r}
 all_usa_data_long <- all_usa_data_long[ NEW_DATE != "2017-04-14"]
 all_usa_data_long <- all_usa_data_long[ ! ( horizon %in% c(2) ) ]
 ```
 
+
+## Plotting the 3d yield curve
+
+There are several alternatives to plot 3d surfaces in R but to make it
+interactive, we choose the `plotly` package. We have to move back the data in
+a long format.
+
+For the surface color, we will plot it as the ration to rate with 3month horizon
+as reference. Thus we create a new matrix with the calculation and deal with 
+special values when 3 months rate is 0.
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -180,20 +208,24 @@ c[ X3 == 0 , ':=' (
     X360 = NA
 )]
 c[ , X3 := 1 ]
-#c <- c * 100 - 100
+```
 
-plot_ly(
+We are now ready to plot. We choose the color theme of Dark2 palette (green & 
+orange).
+
+
+```{r plot3d, message=FALSE, warning=FALSE, out.width='100%'}
+p <- plot_ly(
     x = sort(unique(all_usa_data_long$NEW_DATE)),
     y = sort(unique(all_usa_data_long$horizon)),
     z = t(as.matrix(d)),
     type = "surface",
     surfacecolor = t(as.matrix(c)),
-    cmin = 0.7,
-    cmax = 1.3,
+    cmin = 0.8,
+    cmax = 1.2,
     colorscale = list(
         list(
             0,
-            #"rgb(256, 0, 0)"
             "rgb(215, 95, 2)"
         ),
         list(
@@ -202,66 +234,47 @@ plot_ly(
         ),
         list (
             1,
-            #"rgb(35, 130, 180)"
-            #"rgb(1, 121, 111)"
             "rgb(25, 155, 115)"
         )
     ),
+    colorbar = list(
+        title='ratio to<br>3 month<br>yield',
+        side = 'bottom',
+        thickness='10',
+        xpad = 5,
+        y = 0.8
+    ),
     lighting = list(
-        fresnel = 0.1,
+        ambient = 0.8,
+        diffuse = 0.8,
         specular = 0.2,
-        ambient = 0.95,
-        diffuse = 0.9,
-        roughness = 0.02
+        roughness = 0.8,
+        fresnel = 0.2
+    ),
+    opacity = 0.9,
+    hoverlabel = list(
+        bgcolor = "rgb(255, 255, 255)"
     )
 ) %>%
     plotly::layout(
-        title = "3D yield curve",
+        #title = "3D yield curve",
+        width = 800,
+        height = 500,
         scene=list(
             xaxis=list(title="date"),
             yaxis=list(title="horizon"),
             zaxis=list(title="rate"),
             aspectmode = "manual",
-            aspectratio = list(x=4,y=2,z=1.5),
+            aspectratio = list(x=4,y=2,z=1.3),
             camera = list(
-                eye = list(x = 1.9, y = -4, z = 1 ),
-                center = list( x = 0.5, y = 0, z = 0)
+                eye = list(x = 3, y = -3, z = 0.3 ),
+                center = list( x = 0.8, y = 0, z = 0)
             )
         )
     ) %>% 
     config(displayModeBar = F) 
-
-```
-
-
-```{r}
-f <- data.table::melt(
-    c,
-    measure.vars = c(
-        "X1", "X3", "X6", "X12", "X24", "X36", "X60",
-        "X84", "X120", "X240", "X360"),
-    variable.name = "horizon",
-    value.name = "ratio")
-g <- ggplot(f)
-g <- g + geom_point(aes(x = all_usa_data_long$NEW_DATE,
-                        y = ratio,
-                        col = horizon),
-                    alpha = 0.5, size = 0.5)
-g <- g + facet_grid(facets =  horizon ~ . )
-g
+p
 ```
 
 
 
-
-
-
-
-
-### Germany data
-
-
-### Japan data
-
-
-### France data
