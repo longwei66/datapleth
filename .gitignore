@@ -37,3 +37,9 @@ rsconnect/
 
 # remove public as it's compiled by Travis
 public/
+
+# Remove non necessary files
+content/blog/*.html
+content/blog/data/*
+content/blog/img/*
+content/blog/sat/*

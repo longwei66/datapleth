@@ -183,16 +183,16 @@ d[ , NEW_DATE := NULL]
 c <- copy(d)
 setnames(c, make.names(names(c)))
 c[ , ':=' (
-    X1 = X1 / X3,
-    X6 = X6 / X3,
-    X12 = X12 / X3,
-    X24 = X24 / X3,
-    X36 = X36 / X3,
-    X60 = X60 / X3,
-    X84 = X84 / X3,
-    X120 = X120 / X3,
-    X240 = X240 / X3,
-    X360 = X360 / X3
+    X1 = (X1 - X3) / abs(X3),
+    X6 = (X6 - X3) / abs(X3),
+    X12 = (X12 - X3) / abs(X3),
+    X24 = (X24 - X3) / abs(X3),
+    X36 = (X36 - X3) / abs(X3),
+    X60 = (X60 - X3) / abs(X3),
+    X84 = (X84 - X3) / abs(X3),
+    X120 = (X120 - X3) / abs(X3),
+    X240 = (X240 - X3) / abs(X3),
+    X360 = (X360 - X3) / abs(X3)
 )]
 ## deal with zero values
 c[ X3 == 0 , ':=' (
@@ -221,8 +221,8 @@ p <- plot_ly(
     z = t(as.matrix(d)),
     type = "surface",
     surfacecolor = t(as.matrix(c)),
-    cmin = 0.8,
-    cmax = 1.2,
+    cmin = -0.35,
+    cmax = +0.35,
     colorscale = list(
         list(
             0,
@@ -276,5 +276,18 @@ p <- plot_ly(
 p
 ```
 
+## References
+
+From The New York Times :
+
+- https://www.nytimes.com/2019/08/15/upshot/inverted-yield-curve-bonds-football-analogy.html
+- https://www.nytimes.com/interactive/2015/03/19/upshot/3d-yield-curve-economic-growth.html?module=inline
+
+Other R works :
+
+- https://www.r-bloggers.com/plotting-the-evolution-of-the-u-s-treasury-yield-curve/
+- https://plot.ly/~PlotlyTutorials/326/us-treasury-yield-curve/#/
+- https://gist.github.com/timelyportfolio/4da9d6b6c89cce26effabccca30124dd
+- https://stefan.angrick.me/a-3d-view-of-the-us-treasury-yield-curve
 
 
