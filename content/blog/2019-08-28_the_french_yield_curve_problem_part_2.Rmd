@@ -55,7 +55,7 @@ extract.
 
 ```{r getFranceData2, message=FALSE, warning=FALSE}
 data.table::setDT(all_france_data_raw) 
-data.table::setnames(all_france_data_raw, as.character(france_features[2,]))
+data.table::setnames(all_france_data_raw, make.names(as.character(france_features[2,])))
 knitr::kable(head(all_france_data_raw)) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
@@ -89,12 +89,12 @@ knitr::kable(head(all_france_data)) %>%
 ```{r}
 ## add the date back
 all_france_data <- cbind(
-    all_france_data_raw[ , `Code série :`],
+    all_france_data_raw[ , Code.s..rie..],
     all_france_data)
 
 ## Compute dates in correct locale
 all_france_data[ , NEW_DATE := as.Date(
-    as.POSIXlt(x = all_france_data_raw$`Code série :`,
+    as.POSIXlt(x = all_france_data_raw$Code.s..rie..,
                format = "%d/%m/%Y")
 )
 ]
