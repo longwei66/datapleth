@@ -9,8 +9,13 @@ output: html_document
 ---
 
 
-Following our [previous]() post on the USA yield curve inversion, we are going 
-to evaluate the situation in other countries, starting with France.
+Following our [previous](https://datapleth.io/blog/2019/08/17/2019-08-17_do_we_have_a_yield_curve_problem/) 
+post on the USA yield curve inversion, we are going to evaluate the situation 
+in other countries, starting with France. We can observe similar pattern on
+the recent interest rates for which there is an inversion, the long term rates
+are lower than the short term rates. However, we were not (yet) able to get 
+historical data for all horizon. "Banque de France" is not releasing such
+information as of today.
 
 ## Preparation
 
@@ -29,7 +34,8 @@ Sys.setlocale("LC_ALL","C")
 
 ## Getting and cleaning the data for France
 
-Data source for France data is French central bank, known as "Banque de France" (see [here](https://www.banque-france.fr/statistiques/taux-et-cours/taux-indicatifs-des-bons-du-tresor-et-oat). They provide the data as HTML and CSV as one URL with all 
+Data source for France data is French central bank, known as "Banque de France"
+(see [here](https://www.banque-france.fr/statistiques/taux-et-cours/taux-indicatifs-des-bons-du-tresor-et-oat). They provide the data as HTML and CSV as one URL with all 
 historical values.
 
 ```{r getFranceData1, message=FALSE, warning=FALSE}
@@ -57,14 +63,14 @@ extract.
 data.table::setDT(all_france_data_raw) 
 data.table::setnames(all_france_data_raw, make.names(as.character(france_features[2,])))
 knitr::kable(head(all_france_data_raw)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
 ```
 
 We change now the features names to get a similar structure as for USA data.
 We will also have to clean the table as numeric separator are commas and 
 missing values are dashes.
 
-```{r cleanFranceData}
+```{r cleanFranceData, message=FALSE, warning=FALSE}
 ## a function to convert "-0,371" as "-0.371" and "-" as NA
 convert2string <- function(x){
     as.numeric(
@@ -82,7 +88,7 @@ all_france_data <- all_france_data_raw[ ,
                                         .SDcols = names(all_france_data_raw) %like% "FM"
                                         ]
 knitr::kable(head(all_france_data)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
 ```
 
 
@@ -100,7 +106,7 @@ all_france_data[ , NEW_DATE := as.Date(
 ]
 all_france_data[ , V1 := NULL ]
 knitr::kable(head(all_france_data)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
 ```
 
 ```{r}
