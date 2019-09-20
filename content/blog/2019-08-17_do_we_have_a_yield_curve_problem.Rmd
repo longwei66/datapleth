@@ -1,5 +1,5 @@
 ---
-title: "Do we have a yield curve problem ? (part 1)"
+title: "Do we have a yield curve problem? (made in USA)"
 date: "2019-08-17T13:39:46+02:00"
 author: "Datapleth.io"
 tags: ["3d", "plotly"]
