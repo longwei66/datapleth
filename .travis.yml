@@ -13,7 +13,8 @@ apt_packages:
 - fonts-arphic-gkai00mp fonts-arphic-ukai fonts-arphic-uming fonts-cns11643-kai
 - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
 - fonts-cwtex-ming fonts-cwtex-yen
-- libgdal-dev libproj-dev
+- libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
+- libjq-dev
 cache:
   packages: true
   directories:
@@ -32,7 +33,7 @@ script:
 - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
 - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
 - Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
-- Rscript -e 'install.packages(c("kableExtra"))'
+- Rscript -e 'install.packages(c("kableExtra", "geojsonio"))'
 - Rscript -e 'blogdown::install_hugo()'
 - Rscript -e 'blogdown::build_site()'
 after_success:
