@@ -148,6 +148,7 @@ ggplot() +
   coord_map()
 ```
 
+<<<<<<< HEAD
 
 
 ## Election choropleth
@@ -188,3 +189,5 @@ p
 #rgl::view3d(theta = 45, phi = 30, zoom = 0.4, fov = 50)
 ```
 
+=======
+>>>>>>> 6b0cb299aa544e462fcfbb604cccfd8f1567c01e
