@@ -33,7 +33,7 @@ script:
 - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
 - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
 - Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
-- Rscript -e 'install.packages(c("kableExtra", "geojsonio"))'
+- Rscript -e 'install.packages(c("kableExtra", "geojsonio", "broom"))'
 - Rscript -e 'blogdown::install_hugo()'
 - Rscript -e 'blogdown::build_site()'
 after_success:
