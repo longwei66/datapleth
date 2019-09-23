@@ -12,7 +12,7 @@ apt_packages:
 - fonts-arphic-bkai00mp fonts-arphic-bsmi00lp fonts-arphic-gbsn00lp
 - fonts-arphic-gkai00mp fonts-arphic-ukai fonts-arphic-uming fonts-cns11643-kai
 - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
-- fonts-cwtex-ming fonts-cwtex-yen
+- fonts-cwtex-ming fonts-cwtex-yen libudunits2-dev
 - libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
 - libjq-dev
 cache:
