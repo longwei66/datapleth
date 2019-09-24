@@ -150,7 +150,9 @@ france_communes <- geojsonio::geojson_read(france_sp_uri,  what = "sp")
 ```{r filterShape}
 ## let's filter only the region of Limousin
 communes_lim <- france_communes[ 
-  substr(france_communes@data$insee,1,2)  %in% c("87","19","23"), 
+  substr(france_communes@data$insee,1,2)  %in% c(
+    "87","19","23"
+    ), 
   ]
 ```
 
@@ -195,9 +197,18 @@ p <- ggplot() +
     aes(fill = nb_voix_perc_exprimes, x = long, y = lat, group = group),
     color="grey", size = 0.2
   ) +
-  theme_void() + facet_wrap(facets = . ~ liste_shortname) +
   scale_fill_viridis_c(option = "A", direction = -1) +
-  coord_map()
+  facet_wrap(facets = . ~ liste_shortname) +
+  coord_map() +
+  theme_tufte() +
+  theme(
+    axis.line=element_blank()
+    , axis.text=element_blank()
+    , axis.ticks=element_blank()
+    , axis.title=element_blank()
+    ) +
+  ggtitle("European election - 2019 - Limousin (France)") +
+  labs(fill = "% of votes")
 p
 ```
 
