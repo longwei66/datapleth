@@ -23,6 +23,7 @@ library(dplyr)
 library(geojson)
 library(broom)
 library(ggplot2)
+library(ggthemes)
 ```
 
 ## Election results
@@ -33,8 +34,8 @@ We need first to download the official results from
 ```{r getData}
 results_uri <- "https://www.data.gouv.fr/en/datasets/r/35170deb-e5f3-4e79-889f-5b9a3f547742"
 election_results <- data.table::fread(
-    results_uri, encoding = "Latin-1", dec= ","
-    )
+  results_uri, encoding = "Latin-1", dec= ","
+)
 ```
 
 In the election result file we don't have the insee code of the county, we have
@@ -45,17 +46,17 @@ except for data outside France mainland.
 ## ZZ for other countries -> 99
 election_results[ , insee := as.numeric(`Code du département`)]
 election_results[ 
-    `Code du département` == "ZZ",
-    insee := 99
-    ]
+  `Code du département` == "ZZ",
+  insee := 99
+  ]
 election_results[ 
-    `Code du département` %in% c("ZX","ZS","ZM","ZD","ZC","ZB","ZA"),
-    insee := 97
-    ]
+  `Code du département` %in% c("ZX","ZS","ZM","ZD","ZC","ZB","ZA"),
+  insee := 97
+  ]
 election_results[ 
-    `Code du département` %in% c("ZW","ZP","ZN"),
-    insee := 98
-    ]
+  `Code du département` %in% c("ZW","ZP","ZN"),
+  insee := 98
+  ]
 election_results[, insee := as.character(insee*1000 + `Code de la commune`)]
 election_results[ nchar(insee) == 4, insee := paste0("0",insee)]
 ```
@@ -68,48 +69,66 @@ of the main extreme right party (Rassemblement National) which are in column
 `V61` to `V68`. County (Commune) data are store in columns 1 to 18, then each
 list results are stored in 8 columns.
 
-```{r}
-list_id <- 23
-idx <-  c(1:18, (19+(list_id -1)*7):(19+(list_id -1)*7+6),257)
-election_results_rn <- election_results[ , .SD, .SDcols=idx]
+```{r extractList}
+extract_list <- function(data,list_id = 23){
+  # compute list index and extract it
+  idx <-  c(1:18, (19+(list_id -1)*7):(19+(list_id -1)*7+6),257)
+  sub_data <- data[ , .SD, .SDcols=idx]
+  names_clean <- c(
+    "departement_id", #[1] "Code du département"   
+    "deparement_name", #[2] "Libellé du département"
+    "commune_id", #[3] "Code de la commune"    
+    "commune_name", #[4] "Libellé de la commune" 
+    "inscrits", #[5] "Inscrits"              
+    "abstentions", #[6] "Abstentions"           
+    "absentions_perc", #[7] "% Abs/Ins"             
+    "votants", #[8] "Votants"               
+    "votants_perc", #[9] "% Vot/Ins"             
+    "blancs", #[10] "Blancs"                
+    "blancs_perc", #[11] "% Blancs/Ins"          
+    "blancs_perc_votants", #[12] "% Blancs/Vot"          
+    "nuls", #[13] "Nuls"                  
+    "nuls_perc", #[14] "% Nuls/Ins"            
+    "nuls_perc_votants", #[15] "% Nuls/Vot"            
+    "exprimes", #[16] "Exprimés"              
+    "exprimes_perc", #[17] "% Exp/Ins"             
+    "exprimes_perc_votants", #[18] "% Exp/Vot"             
+    "liste_id", #[19] "N°Liste"               
+    "liste_shortname", #[20] "Libellé Abrégé Liste"  
+    "liste_name", #[21] "Libellé Etendu Liste"  
+    "tete_de_liste", #[22] "Nom Tête de Liste"     
+    "nb_voix", #[23] "Voix"                  
+    "nb_voix_perc", #[24] "% Voix/Ins"            
+    "nb_voix_perc_exprimes", #[25] "% Voix/Exp" 
+    "code_insee"
+  )
+  setnames(sub_data, names_clean)
+  return(sub_data)
+}
 
-names_clean <- c(
- "departement_id", #[1] "Code du département"   
- "deparement_name", #[2] "Libellé du département"
- "commune_id", #[3] "Code de la commune"    
- "commune_name", #[4] "Libellé de la commune" 
- "inscrits", #[5] "Inscrits"              
- "abstentions", #[6] "Abstentions"           
- "absentions_perc", #[7] "% Abs/Ins"             
- "votants", #[8] "Votants"               
- "votants_perc", #[9] "% Vot/Ins"             
- "blancs", #[10] "Blancs"                
- "blancs_perc", #[11] "% Blancs/Ins"          
- "blancs_perc_votants", #[12] "% Blancs/Vot"          
- "nuls", #[13] "Nuls"                  
- "nuls_perc", #[14] "% Nuls/Ins"            
- "nuls_perc_votants", #[15] "% Nuls/Vot"            
- "exprimes", #[16] "Exprimés"              
- "exprimes_perc", #[17] "% Exp/Ins"             
- "exprimes_perc_votants", #[18] "% Exp/Vot"             
- "liste_id", #[19] "N°Liste"               
- "liste_shortname", #[20] "Libellé Abrégé Liste"  
- "liste_name", #[21] "Libellé Etendu Liste"  
- "tete_de_liste", #[22] "Nom Tête de Liste"     
- "nb_voix", #[23] "Voix"                  
- "nb_voix_perc", #[24] "% Voix/Ins"            
- "nb_voix_perc_exprimes", #[25] "% Voix/Exp" 
- "code_insee"
-)
-setnames(election_results_rn, names_clean)
+election_results_rn <- extract_list(data = election_results, list_id = 23)
+election_results_lrem <- extract_list(data = election_results, list_id = 5)
+election_results_lfi <- extract_list(data = election_results, list_id = 1)
+election_results_ps <- extract_list(data = election_results, list_id = 12)
+election_results_lr <- extract_list(data = election_results, list_id = 29)
+election_results_eelv <- extract_list(data = election_results, list_id = 30)
+
+election_results_sub <- rbind(
+  election_results_rn,
+  election_results_lrem,
+  election_results_lfi,
+  election_results_ps,
+  election_results_lr,
+  election_results_eelv
+  )
 ```
 
 
-We have now a clean table with data for Rassemblement National list.
+We have now a clean table with data for Rassemblement National list and LREM.
 
 ```{r}
-knitr::kable(head(election_results_rn)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
+knitr::kable(head(election_results_sub)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
 ```
 
 
@@ -120,7 +139,7 @@ We are getting the shapefile stored as geojson formats directly on
 
 
 
-```{r getFranceSp}
+```{r getFranceSp, message=FALSE, warning=FALSE}
 ## url of the geojson file downloaded and unzipped from data.gouv.fr
 france_sp_uri <- "https://data.datapleth.io/ext/france/spatial/communes-simple/communes-20190101.json"
 
@@ -131,8 +150,8 @@ france_communes <- geojsonio::geojson_read(france_sp_uri,  what = "sp")
 ```{r filterShape}
 ## let's filter only the region of Limousin
 communes_lim <- france_communes[ 
-    substr(france_communes@data$insee,1,2)  %in% c("87","19","23"), 
-    ]
+  substr(france_communes@data$insee,1,2)  %in% c("87","19","23"), 
+  ]
 ```
 
 
@@ -140,7 +159,7 @@ communes_lim <- france_communes[
 ```{r message=FALSE, warning=FALSE}
 # I need to fortify the data AND keep trace of the commune code! (Takes ~2 minutes)
 communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
- 
+
 # Now I can plot this shape easily as described before:
 ggplot() +
   geom_polygon(data = communes_lim_fortified, aes( x = long, y = lat, group = group), fill="white", color="grey") +
@@ -156,12 +175,13 @@ We have election results per communes and spatial file per communes. Let's merge
 both datasets to plot a choropleth.
 
 ```{r}
-communes_lim_fortified <- merge(
-    x = communes_lim_fortified,
-    y = election_results_rn, 
-    by.x = "id", 
-    by.y = "code_insee"
-    )
+communes_results <- merge(
+  x = election_results_sub
+  , y = communes_lim_fortified
+  , by.x = "code_insee"
+  , by.y = "id"
+  , allow.cartesian=TRUE
+)
 ```
 
 
@@ -171,11 +191,11 @@ communes_lim_fortified <- merge(
 ```{r}
 p <- ggplot() +
   geom_polygon(
-      data = communes_lim_fortified, 
-      aes(fill = nb_voix_perc_exprimes, x = long, y = lat, group = group),
-      color="grey", size = 0.2
-      ) +
-  theme_void() +
+    data = communes_results, 
+    aes(fill = nb_voix_perc_exprimes, x = long, y = lat, group = group),
+    color="grey", size = 0.2
+  ) +
+  theme_void() + facet_wrap(facets = . ~ liste_shortname) +
   scale_fill_viridis_c(option = "A", direction = -1) +
   coord_map()
 p
