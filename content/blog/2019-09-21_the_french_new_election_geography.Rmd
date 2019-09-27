@@ -24,6 +24,7 @@ library(geojson)
 library(broom)
 library(ggplot2)
 library(ggthemes)
+library(rmapshaper)
 ```
 
 ## Election results
@@ -154,12 +155,22 @@ communes_lim <- france_communes[ ! substr(france_communes@data$insee,1,2)  %in% 
     ), ]
 ```
 
+This is a quite large and detailled file, we are simplifying...
+
+```{r simplifyMap, message=FALSE, warning=FALSE}
+communes_lim <- rmapshaper::ms_simplify(communes_lim)
+```
+
+
+
 Let's have a look on this map with the communes areas.
 
 ```{r message=FALSE, warning=FALSE}
 # Fortify the data AND keep trace of the commune code.
 communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
+```
 
+```{r plotBaseMap, message=FALSE, warning=FALSE}
 # Now I can plot this shape easily as described before:
 ggplot() +
   geom_polygon(data = communes_lim_fortified, 
