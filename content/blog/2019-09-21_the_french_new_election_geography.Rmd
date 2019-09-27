@@ -1,18 +1,17 @@
 ---
-title: "The french new election geography"
+title: "The new french election geography"
 date: "2019-09-21T13:39:46+02:00"
 author: "Datapleth.io"
 tags: ["choropleth", "france"]
 categories: ["geography","france"]
-banner: "img/illustrations/datapleth-yield-curve-france.png"
+banner: "blog/2019-09-21_the_french_new_election_geography_files/figure-html/electionChoropleth-1.png"
 output: html_document
 ---
 
 The last European elections were on June 26th, 2019. One of the major
 observation was the increase of extreme right votes, and more particularily
 the shift toward extreme right of areas which used to be left voters. In this 
-post we are going to visualize the new shape of France, with a zoom on the region
-of Limousin.
+post we are going to visualize the new shape of France.
 
 
 
@@ -147,16 +146,12 @@ france_sp_uri <- "https://data.datapleth.io/ext/france/spatial/communes-simple/c
 france_communes <- geojsonio::geojson_read(france_sp_uri,  what = "sp")
 ```
 
-Limousin was one of the last areas in France where extreme right didn't have
-the majority during last european elections, thus we decide to first visualise
-the choropleth of election results there.
+Let's filter the results of France mainland only
 
 ```{r filterShape, message=FALSE, warning=FALSE}
-communes_lim <- france_communes[ 
-  substr(france_communes@data$insee,1,2)  %in% c(
-    "87","19","23"
-    ), 
-  ]
+communes_lim <- france_communes[ ! substr(france_communes@data$insee,1,2)  %in% c(
+    "97","98","99"
+    ), ]
 ```
 
 Let's have a look on this map with the communes areas.
@@ -167,7 +162,11 @@ communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
 
 # Now I can plot this shape easily as described before:
 ggplot() +
-  geom_polygon(data = communes_lim_fortified, aes( x = long, y = lat, group = group), fill="white", color="grey") +
+  geom_polygon(data = communes_lim_fortified, 
+               aes( x = long, y = lat, group = group),
+               fill="white", 
+               color="grey", size = 0.2
+               ) +
   theme_void() +
   coord_map()
 ```
@@ -193,12 +192,12 @@ Finaly we can plot the results with one map per list.
 
 
 
-```{r electionChoropleht, message=FALSE, warning=FALSE}
+```{r electionChoropleth, message=FALSE, warning=FALSE}
 p <- ggplot() +
   geom_polygon(
     data = communes_results, 
     aes(fill = nb_voix_perc_exprimes, x = long, y = lat, group = group),
-    color="grey", size = 0.2
+    color="grey", size = 0.02
   ) +
   scale_fill_viridis_c(option = "A", direction = -1) +
   facet_wrap(facets = . ~ liste_shortname) +
