@@ -2,8 +2,8 @@
 title: "The french new election geography"
 date: "2019-09-21T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["3d", "plotly"]
-categories: ["economy"]
+tags: ["choropleth", "france"]
+categories: ["geography","france"]
 banner: "img/illustrations/datapleth-yield-curve-france.png"
 output: html_document
 ---
@@ -11,7 +11,8 @@ output: html_document
 The last European elections were on June 26th, 2019. One of the major
 observation was the increase of extreme right votes, and more particularily
 the shift toward extreme right of areas which used to be left voters. In this 
-post we are going to visualize the new shape of France.
+post we are going to visualize the new shape of France, with a zoom on the region
+of Limousin.
 
 
 
@@ -31,18 +32,18 @@ library(ggthemes)
 We need first to download the official results from
 [data.gouv.fr](https://www.data.gouv.fr/en/datasets/resultats-des-elections-europeennes-2019/)
 
-```{r getData}
+```{r getData, message=FALSE, warning=FALSE}
 results_uri <- "https://www.data.gouv.fr/en/datasets/r/35170deb-e5f3-4e79-889f-5b9a3f547742"
 election_results <- data.table::fread(
   results_uri, encoding = "Latin-1", dec= ","
 )
 ```
 
-In the election result file we don't have the insee code of the county, we have
-to build that based on department number and county code. This is working well
-except for data outside France mainland.
+In the election result file we don't have the insee code of the "communes" (an
+equivalent of counties in USA), we have to build that based on department number
+and county code. This is working well except for data outside France mainland.
 
-```{r getInsee}
+```{r getInsee, message=FALSE, warning=FALSE}
 ## ZZ for other countries -> 99
 election_results[ , insee := as.numeric(`Code du département`)]
 election_results[ 
@@ -62,14 +63,12 @@ election_results[ nchar(insee) == 4, insee := paste0("0",insee)]
 ```
 
 
-
 The format of the data is really awfull, headers are not covering all columns.
 We first select the interesting columns and rename. We'll use first the results
-of the main extreme right party (Rassemblement National) which are in column
-`V61` to `V68`. County (Commune) data are store in columns 1 to 18, then each
-list results are stored in 8 columns.
+of the main lists. Communes data are store in columns 1 to 18, then each
+list results are stored in 7 columns.
 
-```{r extractList}
+```{r extractList, message=FALSE, warning=FALSE}
 extract_list <- function(data,list_id = 23){
   # compute list index and extract it
   idx <-  c(1:18, (19+(list_id -1)*7):(19+(list_id -1)*7+6),257)
@@ -124,7 +123,7 @@ election_results_sub <- rbind(
 ```
 
 
-We have now a clean table with data for Rassemblement National list and LREM.
+We have now a clean table with data for the main parties lists.
 
 ```{r}
 knitr::kable(head(election_results_sub)) %>%
@@ -132,10 +131,11 @@ knitr::kable(head(election_results_sub)) %>%
 ```
 
 
-## France 'communes' (counties?)
+## France 'communes' shapefiles.
 
 We are getting the shapefile stored as geojson formats directly on 
-[data.gouv.fr](https://www.data.gouv.fr/en/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/#_).
+[data.gouv.fr](https://www.data.gouv.fr/en/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/#_), however they are stored in zip and we store a copy
+in our cloud storage.
 
 
 
@@ -147,8 +147,11 @@ france_sp_uri <- "https://data.datapleth.io/ext/france/spatial/communes-simple/c
 france_communes <- geojsonio::geojson_read(france_sp_uri,  what = "sp")
 ```
 
-```{r filterShape}
-## let's filter only the region of Limousin
+Limousin was one of the last areas in France where extreme right didn't have
+the majority during last european elections, thus we decide to first visualise
+the choropleth of election results there.
+
+```{r filterShape, message=FALSE, warning=FALSE}
 communes_lim <- france_communes[ 
   substr(france_communes@data$insee,1,2)  %in% c(
     "87","19","23"
@@ -156,10 +159,10 @@ communes_lim <- france_communes[
   ]
 ```
 
-
+Let's have a look on this map with the communes areas.
 
 ```{r message=FALSE, warning=FALSE}
-# I need to fortify the data AND keep trace of the commune code! (Takes ~2 minutes)
+# Fortify the data AND keep trace of the commune code.
 communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
 
 # Now I can plot this shape easily as described before:
@@ -176,7 +179,7 @@ ggplot() +
 We have election results per communes and spatial file per communes. Let's merge
 both datasets to plot a choropleth.
 
-```{r}
+```{r mergeDataShape, message=FALSE, warning=FALSE}
 communes_results <- merge(
   x = election_results_sub
   , y = communes_lim_fortified
@@ -186,11 +189,11 @@ communes_results <- merge(
 )
 ```
 
+Finaly we can plot the results with one map per list.
 
 
 
-
-```{r}
+```{r electionChoropleht, message=FALSE, warning=FALSE}
 p <- ggplot() +
   geom_polygon(
     data = communes_results, 
@@ -213,7 +216,7 @@ p
 ```
 
 
-```{r}
+```{r rayshading, eval=FALSE, warning=FALSE, include=FALSE}
 #library(rayshader)
 #rayshader::plot_gg(p,multicore=TRUE,width=5,height=5,scale=250)
 #rgl::view3d(theta = 45, phi = 30, zoom = 0.4, fov = 50)
