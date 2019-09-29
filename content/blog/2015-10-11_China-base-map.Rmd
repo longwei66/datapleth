@@ -177,7 +177,7 @@ ChinaLevel1Data <- ChinaPolygonsLevel1@data
 ChinaLevel1Data$id <- ChinaLevel1Data$NL_NAME_1
 
 # Fortify the data (polygon map as dataframe)
-ChinaLevel1dF <- fortify(ChinaPolygonsLevel1, region = "NL_NAME_1")
+ChinaLevel1dF <- ggplot2::fortify(ChinaPolygonsLevel1, region = "NL_NAME_1")
 
 ```
 
@@ -225,10 +225,8 @@ center of each province.
 
 ```{r computeProvinceCenters}
 ## Getting the center of each subdivision (to plot names or others)
-## ddply is from the plyr package
-
 Level1Centers <-
-    ddply(ChinaLevel1dF, .(id), summarize, clat = mean(lat), clong = mean(long))
+    plyr::ddply(ChinaLevel1dF, .(id), summarize, clat = mean(lat), clong = mean(long))
 ## Merge results in one data frame
 ChinaLevel1Data <- merge(ChinaLevel1Data, Level1Centers, all = TRUE)
 ```
@@ -246,7 +244,7 @@ h <- g + geom_text(data = ChinaLevel1Data ,
                        label = id, size = 0.2,
                        group = NULL, fill=NULL
                    ),
-                   show_guide = FALSE
+                   show.legend = FALSE
 ) 
 
 ## Theme configuration

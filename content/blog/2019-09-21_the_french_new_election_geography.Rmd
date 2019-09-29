@@ -220,7 +220,7 @@ p <- ggplot() +
     , axis.ticks=element_blank()
     , axis.title=element_blank()
     ) +
-  ggtitle("European election - 2019 - Limousin (France)") +
+  ggtitle("European election - 2019 - France") +
   labs(fill = "% of votes")
 p
 ```
