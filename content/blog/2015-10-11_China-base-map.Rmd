@@ -9,31 +9,25 @@ output: html_document
 ---
 
 
-In this article we are going to plot a simple map of China with different levels of subdivisions using both base and ggplot2 systems.
+In this article we are going to plot a simple map of China with different levels
+of subdivisions using both base and ggplot2 systems.
 
-In a nutshell :
+In a nutshell, we will have first to get shape files with different subdivision
+levels, then a bit of data cleaning will be necessary in order to get proper
+provinces Chinese names. Finally we will plot China base map with subdivisions
+and add subdivisions names on the map.
 
-- get shape files with different subdivision levels
-- clean data, get proper provinces Chinese names
-- plot China base map with subdivisions both is base and ggplot systems
-- add subdivision names on the map
+We should obtain the following image as a final result :
 
-There are three excellent reference article (with maps of Nepal and Toronto) for such process : 
-
-- http://bl.ocks.org/prabhasp/raw/5030005/
-- http://unconj.ca/blog/choropleth-maps-with-r-and-ggplot2.html
-- http://rpsychologist.com/working-with-shapefiles-projections-and-world-maps-in-ggplot
-
-## Principle & Process
-
-### Process steps
-
-A lot of geographical models are available online, they need a bit of data processing to be usable in R depending on their format.
+<img src="https://datapleth.io/blog/2015-10-11_China-base-map_files/figure-html/ChinaProvincesAndNames-1.png" width="90%">
 
 
-### Required libraries
 
-First of all need first a set of graphical and data manipulation libraries
+## Requirements
+
+A lot of geographical models are available online, they need a bit of data 
+processing to be usable in R depending on their format. But first of all we need
+a set of graphical and data manipulation libraries.
 
 ```{r libLoading, message=FALSE}
 library(maptools)
@@ -47,38 +41,53 @@ library(dplyr)
 library(RColorBrewer)
 ```
 
-### About R SpatialPolygonsDataFrame
-We need then to get geographical data for China. There are many possible references but we will focus on the commonly used "Global Administrative Areas" : http://www.gadm.org/country
+## About R SpatialPolygonsDataFrame
 
-> GADM is a spatial database of the location of the world's administrative areas (or adminstrative boundaries) for use in GIS and similar software. Administrative areas in this database are countries and lower level subdivisions such as provinces, departments...
+We need then to get geographical data for China. There are many possible 
+references but we will focus on the commonly used "Global Administrative Areas",
+which can be found at http://www.gadm.org/country .
 
-For instance, if we take China, the first level of subdivisions contains 31 elements of type Province, Municipality, Autonomous Region such as Jiangsu province, Shanghai municipality, etc...
+> GADM is a spatial database of the location of the world's administrative areas 
+(or adminstrative boundaries) for use in GIS and similar software. 
+Administrative areas in this database are countries and lower level subdivisions
+such as provinces, departments...
 
-In R, we need to create an object of class `SpatialPolygonsDataFrame`, this is a special type of data frame composed of two elements :
+For instance, if we take China, the first level of subdivisions contains 31 
+elements of type Province, Municipality, Autonomous Region such as Jiangsu 
+province, Shanghai municipality, etc...
 
-- data : basically a data.frame with data associated to available subdivisions (id, name in different languages, type of subdivisions, etc...)
-- polygons : a list with as many elements as we have subdivisions (eg. 31 in the case of Chine level 1) with all geographical coordinates for the subdivisions
-- more information available here : http://www.inside-r.org/packages/cran/sp/docs/getSpPPolygonsIDSlots
+In R, we need to create an object of class `SpatialPolygonsDataFrame`, this is a
+special type of data frame composed of two elements :
 
-## Getting data
-### Download shapefiles
-GADM provides several formats of data, the easiest way is to get directly the data in R format.
+- data : basically a data.frame with data associated to available subdivisions 
+(id, name in different languages, type of subdivisions, etc...)
+- polygons : a list with as many elements as we have subdivisions (eg. 31 in the
+case of Chine level 1) with all geographical coordinates for the subdivisions
+- more information available here :
+http://www.inside-r.org/packages/cran/sp/docs/getSpPPolygonsIDSlots
 
-> A "R SpatialPolygonsDataFrame" (.rds) file can be used in R. To use it, first load the sp package using library(sp) and then use readRDS("filename.rds") (obviously replacing "filename.rds" with the actual filename)
+## Getting Shapefiles
 
-But let's try to work first with shape files as these type of data are widely use by other GIS system and it's important to learn how to process these.
+GADM provides several formats of data, the easiest way is to get directly the 
+data in R format.
 
-> A "shapefile" consist of at least four actual files (.shp, .shx, .dbf, .prj). This is a commonly used format that can be directly used in Arc-anything, DIVA-GIS, and many other programs. 
+> A "R SpatialPolygonsDataFrame" (.rds) file can be used in R. To use it, first
+load the sp package using library(sp) and then use readRDS("filename.rds")
+
+But let's try to work first with shape files as these type of data are widely
+use by other GIS system and it's important to learn how to process these.
+
+> A "shapefile" consist of at least four actual files (.shp, .shx, .dbf, .prj).
+This is a commonly used format that can be directly used in Arc-anything, 
+DIVA-GIS, and many other programs. 
 
 Let's download China shapefiles from here : http://biogeo.ucdavis.edu/data/gadm2.7/shp/CHN_adm.zip
-We don't integrate the download scripts and unzip as from China internet access can be bumpy. We will assume for later steps that this file is unzipped in `../GAA/` directory.
+We don't integrate the download scripts and unzip as from China internet access 
+can be bumpy. We will use then `readShapeSpatial` method from the `maptools` 
+library to load the shapefile of first level subdivisions of China.
 
-### Load shape file in R
-We will use `readShapeSpatial` method from the `maptools` library to load the shapefile of first level subdivisions of China.
-
-```{r readShapeFile, message=FALSE}
+```{r readShapeFile, message=FALSE, warning=FALSE}
 # download shapefile
-message(getwd())
 URL <- c("https://data.datapleth.io/ext/GAA/CHN_adm1.shp",
          "https://data.datapleth.io/ext/GAA/CHN_adm1.dbf",
          "https://data.datapleth.io/ext/GAA/CHN_adm1.shx")
@@ -91,45 +100,47 @@ for(i in 1:length(URL)){
                   method = "wget", quiet = FALSE,
                   mode = "w", cacheOK = TRUE)
 }
-#ChinaPolygonsLevel1 <-maptools::readShapeSpatial(fn = "./data/CHN_adm1.shp")
 ChinaPolygonsLevel1 <-rgdal::readOGR(dsn =  "./data/CHN_adm1.shp")
-class(ChinaPolygonsLevel1 )
 ```
 
 
 ## Exploring the data 
-### Subdivision data
+
 As mentioned previously, this object has two main parts, the data of subdivisions and the polygons.
 
-```{r strPoly, message=FALSE}
+```{r strPoly, message=FALSE, warning=FALSE}
 str(ChinaPolygonsLevel1@data)
 ```
 
 Basically there are `r nrow(ChinaPolygonsLevel1@data)` subdivisions. We can get their names in local and English languages.
 
-```{r headNames, message=FALSE}
+```{r headNames, message=FALSE, warning=FALSE}
 head(unique(ChinaPolygonsLevel1@data$NAME_1))
 head(unique(ChinaPolygonsLevel1@data$VARNAME_1))
 head(unique(ChinaPolygonsLevel1@data$NL_NAME_1))
 ```
 
-### Polygons
 Regarding the polygons, we can plot it quickly :
 
-```{r basicChinaMap, fig.width=9, fig.height=6}
+```{r basicChinaMap}
 plot(ChinaPolygonsLevel1,  main = "China level 1")
 ```
 
 ## Cleaning data
-### Clean provincial names
-We would like a clean dataset with proper names in English and Chinese (simplified characters only), thus we need to make few substitutions.
 
-There are some province which names is recorded with both simplified and complex characters schemes separated by a `|`
+We would like a clean dataset with proper names in English and Chinese 
+(simplified characters only), thus we need to make few substitutions.
+
+There are some province which names is recorded with both simplified and complex
+characters schemes separated by a `|`
+
 ```{r provinceNames, message=FALSE}
 unique(ChinaPolygonsLevel1@data[grep("\\|", ChinaPolygonsLevel1@data$NL_NAME_1),]$NL_NAME_1)
 ```
 
-So let's substitute these with proper names and simplify also the full names of others
+So let's substitute these with proper names and simplify also the full names of
+others.
+
 ```{r namesCleaning, message=FALSE}
 ## Chinese names
 ChinaPolygonsLevel1@data$NL_NAME_1 <- gsub("^.*\\|", "", ChinaPolygonsLevel1@data$NL_NAME_1)
@@ -150,45 +161,47 @@ ChinaPolygonsLevel1@data$NAME_1 <- as.factor(ChinaPolygonsLevel1@data$NAME_1)
 
 Here is the final list in simplified Chinese : `r paste(ChinaPolygonsLevel1@data$NL_NAME_1, sep =", ")`
 
-Here is the final list in English : `r paste(ChinaPolygonsLevel1@data$NAME_1, sep =", ")`
+Here is the final list in English : 
+`r paste(ChinaPolygonsLevel1@data$NAME_1, sep =", ")`
 
-### Prepare ggplot maps : Converting spacial polygon shapes to data frame
+## Prepare ggplot maps : Converting spacial polygon shapes to data frame
 
-Later we will use ggplot to plot China maps, we need to convert the polygons object into data frame with `fortify` function. 
-Region will be identified by names in simplified Chinese
+Later we will use ggplot to plot China maps, we need to convert the polygons 
+object into data frame with `fortify` function. Region will be identified by 
+names in simplified Chinese.
 
-```{r convertPoly2DataF, cache=TRUE}
+```{r convertPoly2DataF, message=FALSE, warning=FALSE}
 # Convert the spacial polygon shapes to data frame
-
 # Use level1 as index
 ChinaLevel1Data <- ChinaPolygonsLevel1@data
 ChinaLevel1Data$id <- ChinaLevel1Data$NL_NAME_1
 
 # Fortify the data (polygon map as dataframe)
-ChinaLevel1dF <- fortify(ChinaPolygonsLevel1, region = "NL_NAME_1")
+ChinaLevel1dF <- ggplot2::fortify(ChinaPolygonsLevel1, region = "NL_NAME_1")
 
 ```
 
 ## First map of China with level 1 subdivisions with ggplot
 
-### Provinces
-Let's make our first China ggplot map, we fill subdivisions depending on their types and their borders are colored based on type in Chinese.
-For this version we use the geom_map() function.
+Let's make our first China ggplot map, we fill subdivisions depending on their 
+types and their borders are colored based on type in Chinese. For this version 
+we use the geom_map() function.
 
-```{r firstChinaMapggplot, cache=TRUE, fig.width=9}
+```{r firstChinaMapggplot, message=FALSE, warning=FALSE}
 ## Now we can make a simple map
 g <- ggplot() +
     geom_map(data = ChinaLevel1Data, aes(map_id = id, fill = ENGTYPE_1, col = TYPE_1), map = ChinaLevel1dF) +
     expand_limits(x = ChinaLevel1dF$long, y =  ChinaLevel1dF$lat) +
-    coord_equal() +
+    coord_map() +
     labs(x="Longitude", y="Latitude", title="Map of China level 1 subdivisions per type (using ggplot)") +
     theme_bw()
 print(g)
 ```
 
-An alternative way is to merge all data in one data set and use a different approach for plotting the polygons (see references)
+An alternative way is to merge all data in one data set and use a different 
+approach for plotting the polygons (see references).
 
-```{r secondChinaMapggplot, cache=TRUE, fig.width=9}
+```{r secondChinaMapggplot}
 ## Merge polygons and associated data in one data frame by id (name of the province in chinese)
 ChinaLevel1 <- merge(ChinaLevel1dF, ChinaLevel1Data, by = "id")
 
@@ -200,31 +213,29 @@ g <- g+ geom_polygon(aes(x = long + 0.7, y = lat - 0.5), color = "grey50", size 
 ## Province boundaries
 g <- g + geom_polygon(color = "white", size = 0.2)
 ## to keep correct ratio in the projection
-g <- g + coord_equal()
+g <- g + coord_map()
 g <- g + labs(title = "China - level 1 subdivisions")
 print(g)
 
 ```
 
 
-### Adding province names
-
-We want to plot province names, for that let's calculate the theoretical center of each province.
+We want to plot province names, for that let's calculate the theoretical
+center of each province.
 
 ```{r computeProvinceCenters}
 ## Getting the center of each subdivision (to plot names or others)
-## ddply is from the plyr package
-
 Level1Centers <-
-    ddply(ChinaLevel1dF, .(id), summarize, clat = mean(lat), clong = mean(long))
+    plyr::ddply(ChinaLevel1dF, .(id), summarize, clat = mean(lat), clong = mean(long))
 ## Merge results in one data frame
 ChinaLevel1Data <- merge(ChinaLevel1Data, Level1Centers, all = TRUE)
 ```
 
-Let's add the names on the previous map, we change the color fill using one of palettes available :
+Let's add the names on the previous map, we change the color fill using
+one of palettes available :
 http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/
 
-```{r ChinaProvincesAndNames, cache=TRUE, fig.width=9, fig.height=6}
+```{r ChinaProvincesAndNames, message=FALSE, warning=FALSE}
 ## Add the province chinese names
 h <- g + geom_text(data = ChinaLevel1Data ,
                    aes(
@@ -233,7 +244,7 @@ h <- g + geom_text(data = ChinaLevel1Data ,
                        label = id, size = 0.2,
                        group = NULL, fill=NULL
                    ),
-                   show_guide = FALSE
+                   show.legend = FALSE
 ) 
 
 ## Theme configuration
@@ -255,11 +266,17 @@ print(h)
 
 ## Code information
 
-### Source code
+There are three excellent reference article (with maps of Nepal and Toronto) for
+such process : 
 
-The source code of this post is available on [github](https://github.com/longwei66/datapleth/blob/master/content/blog/2015-10-11_China-base-map.Rmd)
+- http://bl.ocks.org/prabhasp/raw/5030005/
+- http://unconj.ca/blog/choropleth-maps-with-r-and-ggplot2.html
+- http://rpsychologist.com/working-with-shapefiles-projections-and-world-maps-in-ggplot
 
-### Session information
+In addition the source code of this post is available on [github](https://github.com/longwei66/datapleth/blob/master/content/blog/2015-10-11_China-base-map.Rmd)
+
+
+Our session information :
 
 ```{r}
 sessionInfo()

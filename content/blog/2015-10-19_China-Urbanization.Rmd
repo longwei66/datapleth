@@ -9,36 +9,42 @@ output: html_document
 ---
 
 
-## Objective
-In this article we are going to plot a map of China urbanization rate per provinces together with Chinese cities with at least 2 millions population.
 
-In a nutshell :
+In this article we are going to plot a map of China urbanization rate per 
+provinces together with Chinese cities with at least 2 millions population.
 
-1 - Get rural and urban population data from official China statistic bureau, clean the data, same two steps for Chinese largest cities
-2 - Prepare a map of China with provinces
-3 - Get data for the main Chinese cities, population, names and longitude, latitude
-4 - Plot China base map with provincial subdivisions, choropleth of urbanization rate, add   main cities
+In a nutshell, we'll get first rural and urban population data from official 
+China statistic bureau, then clean the data, we'll repeat the same two steps 
+for Chinese largest cities. Secondly, we'll prepare a map of China with
+provinces. Then we will add the main Chinese cities and their population and a 
+choropleth of urbanization rate, add   main cities
 
-Let's start by loading the necessary libraries :
+<img src="../../../../../blog/2015-10-19_China-Urbanization_files/figure-html/addCitiestoChoropleth-1.png" width="100%">
+
 
 ```{r libLoading, message=FALSE}
 library(reshape2)
 library(ggplot2)
 library(maptools)
 library(maps)
+library(knitr)
+library(kableExtra)
+library(dplyr)
 ```
 
-## Getting the data
 
-### Rural and urban population of China
-The best source we found is the official China statistic bureau. You can follow the following link to download the data :
+## Rural and urban population of China
+The best source we found is the official China statistic bureau. You can follow 
+the following link to download the data :
 http://data.stats.gov.cn/english/
 
 We will need three files, Rural, Urban and Total resident per provinces.
 
-Population data for 2000 and 2001 are estimated on the basis of population census, the rest of the data are estimated on the basis of the annual national sample surveys on population changes. Population data by region are permanent resident population since 2005.
+Population data for 2000 and 2001 are estimated on the basis of population 
+census, the rest of the data are estimated on the basis of the annual national 
+sample surveys on population changes. Population data by region are permanent 
+resident population since 2005.
 
-Let's create a generic function to load and clean the data.
 
 ```{r loadCNStats}
 ## data.stats.gov.cn files tend to be formatted with similar patterns
@@ -59,7 +65,6 @@ loadPolupationData <- function(dataFile,mapVariable = "population"){
         dF }
 ```
 
-Let's now load the population data.
 
 ```{r loadPopulationData, cache=TRUE}
 provincePopulationT <- loadPolupationData(
@@ -86,27 +91,32 @@ provincePopulation$Urbanisation.rate <- provincePopulation$Urban.Population / pr
 provincePopulation <- melt(provincePopulation, id.vars = c("Region", "Year"))
 ```
 
-We can now check the data with a quick bar plot :
-```{r quickPopulationPlot, cache = TRUE, fig.width=12}
+We use a generic function to load and clean the data and we plot an overview
+bellow in a quick bar plot :
+
+
+```{r quickPopulationPlot}
 ## select urbanisation rate as variable
 dF <- provincePopulation[provincePopulation$variable =="Urbanisation.rate",]
 ## fix the order using 2014 reference by urbanisation rate decreasing
 ordered.label <- dF[order(dF$variable, dF$value) , ]
 ordered.label <- ordered.label[ordered.label$Year == "2014",]$Region
 
-g <- ggplot(dF, aes(x=Region, y=value))
-g <- g +geom_bar(stat = "identity", fill="chartreuse4")
-g <- g +coord_flip()+facet_grid(facets = . ~ Year)
-g <- g + scale_x_discrete(limits=ordered.label)
+g <- ggplot(dF, aes(x=Region, y=value)) +
+        geom_bar(stat = "identity", fill="chartreuse4") +
+        coord_flip() + facet_grid(facets = . ~ Year) + 
+        scale_x_discrete( limits=ordered.label ) +
+        theme(axis.text.x = element_text(angle = 90))
 print(g)
 ```
 
 
-### Prepare a map of China with provinces, municipalities and autonomous regions
+## Map of China with provinces, municipalities and autonomous regions
 
-We need now to load the polygon shape data frame for china level one subdivisions, merge it with urbanization rate data.
+We need now to load the polygon shape data frame for china level one 
+subdivisions, merge it with urbanization rate data.
 
-```{r readShapeFile, message=FALSE, cache=TRUE, fig.width=12}
+```{r readShapeFile, message=FALSE, warning=FALSE}
 ChinaPolygonsLevel1 <- maptools::readShapeSpatial(fn = "./data/CHN_adm1.shp")
 
 ## Fix English names, simplify
@@ -135,7 +145,7 @@ g <- g+ geom_polygon(aes(x = long + 0.7, y = lat - 0.5), color = "grey50", size 
 ## Province boundaries
 g <- g + geom_polygon(color = "white", size = 0.2)
 ## to keep correct ratio in the projection
-g <- g + coord_equal()
+g <- g + coord_map()
 g <- g + labs(title = "China - level 1 subdivisions")
 print(g)
 ```
@@ -143,36 +153,43 @@ print(g)
 
 ### Main Chinese Cities data
 
-We want to add on the map the main Chinese cities with their population. There are multiple sources for such data but most of them requires intensive data processing. This will be the topic of another article. For this post, let's use available data in R and the world.cities data set of the packages `maps`.
+We want to add on the map the main Chinese cities with their population. There
+are multiple sources for such data but most of them requires intensive data 
+processing. This will be the topic of another article. For this post, let's use 
+available data in R and the world.cities data set of the packages `maps`.
 
-```{r worldCitiesChina}
+```{r worldCitiesChina, message=FALSE, warning=FALSE}
 data("world.cities")
 ## Get cities of China
 mainCitiesOfChina <- world.cities[world.cities$country.etc == "China",]
-```
-
-Let's make a quick and dirty plot to verify the data
-
-```{r quickPlotcitiesChina}
-names(mainCitiesOfChina)
 ## convert population in millions
 mainCitiesOfChina$pop <- mainCitiesOfChina$pop / 1000000
-## plot cities of more than 2 million population
-qplot(
-        x = long, y = lat,
-        data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,],
-        size = pop,
-        col = capital,
-        main = "Chinese cities with more than 2 millions inhabitants by long/lat"
-        )
+```
+
+Let's have a look on the data.
+
+```{r quickPlotcitiesChina, message=FALSE, warning=FALSE}
+# we use kable to generate an html table with nice formatting
+knitr::kable(head(mainCitiesOfChina[mainCitiesOfChina$pop > 2*10^6,],4)) %>%
+  kable_styling(
+    bootstrap_options = c(
+      "striped"
+      , "hover"
+      , "condensed"
+      , "responsive"
+      )
+    ) %>% scroll_box(width = "100%")
 ```
 
 
 ## Plot China map
-We will proceed in two steps, we will make first a choropleth by province of urbanization rate and then we will add cities.
+We will proceed in two steps, we will make first a choropleth by province of 
+urbanization rate and then we will add cities.
 
 ### Provinces, urbanisation rate choropleth
-We should map the urbanization rate from the `provincePopulation` dataframe with province of the maps defined by `ChinaLevel1`. Let's first check that all provinces are covered and names are matching.
+We should map the urbanization rate from the `provincePopulation` dataframe with
+province of the maps defined by `ChinaLevel1`. Let's first check that all
+provinces are covered and names are matching.
 
 ```{r ChinaUrbanizationChoropleth}
 a <- unique(provincePopulation[provincePopulation$variable == "Urbanisation.rate",]$Region)
@@ -182,7 +199,7 @@ all(a %in% b)
 
 This looks good, we can proceed and plot the map.
 
-```{r UrbanisationChoropleth, cache=TRUE, fig.width=12}
+```{r UrbanisationChoropleth, message=FALSE, warning=FALSE}
 ## get large version of the urbanisation dataset
 provincesUrbanisation <- dcast(provincePopulation, Year + Region ~ variable, value.var = "value")
 ## Merge polygons and associated urbanisation data in one data frame by id (name of the province in chinese) and Region - Only for year 2014
@@ -197,19 +214,20 @@ g <- ggplot(
         )
 g <- g + scale_fill_continuous(na.value = "grey80", low = "#ffdddd", high = "#ff3311", name = "Urbanization %")
 ## projected shadow
-g <- g+ geom_polygon(aes(x = long + 0.7, y = lat - 0.5), color = "grey50", size = 0.2, fill = "grey50")
+g <- g + geom_polygon(aes(x = long + 0.7, y = lat - 0.5), color = "grey50", size = 0.2, fill = "grey50")
 ## Province boundaries
 g <- g + geom_polygon(color = "white", size = 0.2)
 ## to keep correct ratio in the projection
-g <- g + coord_equal()
+g <- g + coord_map()
 g <- g + labs(title = "China - Urbanisation rate")
 print(g)
 ```
 
 ### Adding Largest cities
-Then we just need to add another layer with bubbles for each cities larger than 2 millions inhabitants. 
+Then we just need to add another layer with bubbles for each cities larger than
+2 millions inhabitants. 
 
-```{r addCitiestoChoropleth, fig.width=12, cache = TRUE}
+```{r addCitiestoChoropleth, message=FALSE, warning=FALSE}
 ## Theme configuration, as simple a possible
 r <- g + theme_bw() + theme(axis.text = element_blank(),
               axis.title = element_blank(),
@@ -232,7 +250,7 @@ r <- r + scale_size_area(max_size = 12, breaks = c(2,5,10), name = "Population i
 r <- r + geom_text(
         data = mainCitiesOfChina[mainCitiesOfChina$pop > 2,],
         aes(x = long, y = lat, label = name, size = 0.5, group = NULL, fill = NULL, hjust = -0.18),
-        show_guide = FALSE
+        show.legend = FALSE
         )
 r <- r + guides(colour = guide_legend(nrow = 2), size =  guide_legend(order = 1, nrow = 1))
 r <- r + labs(title = "China urbanization rate and cities above 2 millions pop.")

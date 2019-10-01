@@ -11,37 +11,54 @@ output: html_document
 The last European elections were on June 26th, 2019. One of the major
 observation was the increase of extreme right votes, and more particularily
 the shift toward extreme right of areas which used to be left voters. In this 
-post we are going to visualize the new shape of France.
+post we are going to visualize the results of this election designing a new 
+shape for France. The objective is to create a choropleth map of the six main 
+lists of candidates showing the percentage of votes per list for each french 
+communes.
+
+The process to build such maps is pretty straightforward, we need to get the
+election results commune per commune for each candidates lists. We'll then
+products the choropleth maps based on these data, merged.
+
+<img src="../../../../../blog/2019-09-21_the_french_new_election_geography_files/figure-html/electionChoropleth-1.png" width="100%">
+
 
 
 
 ```{r loadLibraries, message=FALSE, warning=FALSE}
+# load necessary libraires
 library(data.table)
 library(knitr)
 library(kableExtra)
 library(dplyr)
 library(geojson)
-library(broom)
+library(broom) # replacing ggplot2::fortify
 library(ggplot2)
 library(ggthemes)
-library(rmapshaper)
+library(rmapshaper) # used to simplify geojson large files
 ```
 
 ## Election results
 
 We need first to download the official results from
-[data.gouv.fr](https://www.data.gouv.fr/en/datasets/resultats-des-elections-europeennes-2019/)
+[data.gouv.fr](https://www.data.gouv.fr/en/datasets/resultats-des-elections-europeennes-2019/). 
+The data provided from the french government is not directly usable and we will
+have to clean and reshape. Some alternatives exists on open data portals but we
+prefer get the source data directly.
 
 ```{r getData, message=FALSE, warning=FALSE}
+# load election results data
 results_uri <- "https://www.data.gouv.fr/en/datasets/r/35170deb-e5f3-4e79-889f-5b9a3f547742"
 election_results <- data.table::fread(
   results_uri, encoding = "Latin-1", dec= ","
 )
 ```
 
-In the election result file we don't have the insee code of the "communes" (an
-equivalent of counties in USA), we have to build that based on department number
-and county code. This is working well except for data outside France mainland.
+The election result file does not contain the insee code of the "communes" (an
+equivalent of counties in USA). This information will be necessary to merge the
+results with the detailled map of France. Thus, we have to build this code 
+using department number and commune code. This is working well except for data
+outside France mainland.
 
 ```{r getInsee, message=FALSE, warning=FALSE}
 ## ZZ for other countries -> 99
@@ -63,10 +80,10 @@ election_results[ nchar(insee) == 4, insee := paste0("0",insee)]
 ```
 
 
-The format of the data is really awfull, headers are not covering all columns.
-We first select the interesting columns and rename. We'll use first the results
-of the main lists. Communes data are store in columns 1 to 18, then each
-list results are stored in 7 columns.
+The format of the data we obtained is really awfull, headers are not covering
+all columns. We first select the interesting columns and rename. We'll use first
+the results of the main lists. Communes data are store in columns 1 to 18, then
+each list results are stored in 7 columns.
 
 ```{r extractList, message=FALSE, warning=FALSE}
 extract_list <- function(data,list_id = 23){
@@ -123,20 +140,32 @@ election_results_sub <- rbind(
 ```
 
 
-We have now a clean table with data for the main parties lists.
+We obtain finally a clean table with data for the main parties lists as shown
+in the extract bellow.
 
-```{r}
-knitr::kable(head(election_results_sub)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
+```{r extractElectionResults, message=FALSE, warning=FALSE}
+# we use kable to generate an html table with nice formatting
+knitr::kable(head(election_results_sub, 2)) %>%
+  kable_styling(
+    bootstrap_options = c(
+      "striped"
+      , "hover"
+      , "condensed"
+      , "responsive"
+      )
+    ) %>% scroll_box(width = "100%")
 ```
 
 
-## France 'communes' shapefiles.
+## France 'communes' shapefiles
+
+Once we have the election results for each communes, we need now to get data to
+build the map of all communes of France. Such data files are called shapefiles,
+these are polygons containing the geographical limits of all communes.
 
 We are getting the shapefile stored as geojson formats directly on 
 [data.gouv.fr](https://www.data.gouv.fr/en/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/#_), however they are stored in zip and we store a copy
 in our cloud storage.
-
 
 
 ```{r getFranceSp, message=FALSE, warning=FALSE}
@@ -147,7 +176,9 @@ france_sp_uri <- "https://data.datapleth.io/ext/france/spatial/communes-simple/c
 france_communes <- geojsonio::geojson_read(france_sp_uri,  what = "sp")
 ```
 
-Let's filter the results of France mainland only
+Let's filter the results of France mainland only otherwise we will get a very
+large map with all french territories located in Pacific ocean, east coast of
+Africa, or Caribeans. These areas could be interesting but ... in a later post.
 
 ```{r filterShape, message=FALSE, warning=FALSE}
 communes_lim <- france_communes[ ! substr(france_communes@data$insee,1,2)  %in% c(
@@ -155,22 +186,21 @@ communes_lim <- france_communes[ ! substr(france_communes@data$insee,1,2)  %in% 
     ), ]
 ```
 
-This is a quite large and detailled file, we are simplifying...
+The dataset we obtain is quite large, as we are going to plot the whole France
+on a single map, we don't need such resolution in the limits of communes. Thus
+we simplify the polygons with a specific algorithm.
 
 ```{r simplifyMap, message=FALSE, warning=FALSE}
 communes_lim <- rmapshaper::ms_simplify(communes_lim)
 ```
 
 
-
-Let's have a look on this map with the communes areas.
-
-```{r message=FALSE, warning=FALSE}
-# Fortify the data AND keep trace of the commune code.
-communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
-```
+Let's have a look on this map showing all France mainland communes subdivisions.
 
 ```{r plotBaseMap, message=FALSE, warning=FALSE}
+# Fortify the data AND keep trace of the commune code.
+communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
+
 # Now I can plot this shape easily as described before:
 ggplot() +
   geom_polygon(data = communes_lim_fortified, 
@@ -178,16 +208,24 @@ ggplot() +
                fill="white", 
                color="grey", size = 0.2
                ) +
-  theme_void() +
-  coord_map()
+  coord_map() +
+  theme_tufte() +
+  theme(
+    axis.line=element_blank()
+    , axis.text=element_blank()
+    , axis.ticks=element_blank()
+    , axis.title=element_blank()
+    ) +
+  ggtitle("France Subdivisions - Communes")
 ```
 
 
 
 ## Election choropleth
 
-We have election results per communes and spatial file per communes. Let's merge
-both datasets to plot a choropleth.
+We have election results per communes and spatial file per communes. It's time
+now to merge both datasets and to a choropleth of vote results as % of expressed
+votes (not counting absent or null votes).
 
 ```{r mergeDataShape, message=FALSE, warning=FALSE}
 communes_results <- merge(
@@ -199,7 +237,15 @@ communes_results <- merge(
 )
 ```
 
-Finaly we can plot the results with one map per list.
+> A choropleth map (from Greek χῶρος "area/region" and πλῆθος "multitude") is a
+thematic map in which areas are shaded or patterned in proportion to the 
+measurement of the statistical variable being displayed on the map, such as 
+population density or per-capita income.
+[(wikipedia)](https://en.wikipedia.org/wiki/Choropleth_map)
+
+
+Finaly we can plot the results with one map per list for the six main lists.
+
 
 
 
@@ -220,7 +266,7 @@ p <- ggplot() +
     , axis.ticks=element_blank()
     , axis.title=element_blank()
     ) +
-  ggtitle("European election - 2019 - Limousin (France)") +
+  ggtitle("European election - 2019 - France") +
   labs(fill = "% of votes")
 p
 ```

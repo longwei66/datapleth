@@ -63,7 +63,14 @@ extract.
 data.table::setDT(all_france_data_raw) 
 data.table::setnames(all_france_data_raw, make.names(as.character(france_features[2,])))
 knitr::kable(head(all_france_data_raw)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
+    kable_styling(
+        bootstrap_options = c(
+            "striped"
+            , "hover"
+            , "condensed"
+            , "responsive"
+            )
+        ) %>% scroll_box(width = "100%")
 ```
 
 We change now the features names to get a similar structure as for USA data.
@@ -88,7 +95,14 @@ all_france_data <- all_france_data_raw[ ,
                                         .SDcols = names(all_france_data_raw) %like% "FM"
                                         ]
 knitr::kable(head(all_france_data)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
+    kable_styling(
+        bootstrap_options = c(
+            "striped"
+            , "hover"
+            , "condensed"
+            , "responsive"
+            )
+        )  %>% scroll_box(width = "100%")
 ```
 
 
@@ -106,7 +120,14 @@ all_france_data[ , NEW_DATE := as.Date(
 ]
 all_france_data[ , V1 := NULL ]
 knitr::kable(head(all_france_data)) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% scroll_box(width = "100%")
+    kable_styling(
+        bootstrap_options = c(
+            "striped"
+            , "hover"
+            , "condensed"
+            , "responsive"
+            )
+        ) %>% scroll_box(width = "100%")
 ```
 
 ```{r}
