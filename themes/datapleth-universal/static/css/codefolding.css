@@ -5,8 +5,8 @@
 .code-folding-btn { 
     margin-bottom: 4px; 
 }
-.row { 
-    display: flex;
+.rowc { 
+    display: flex; 
     border-bottom: solid 1px #d7d7d7;
 }
 .collapse {
@@ -14,7 +14,7 @@
 }
 .in { 
     display: block ;
-    border: solid 1px #d7d7d7;
+    /* border: solid 1px #d7d7d7; */
     border-radius: 5px;
 }
 .col-md-12 {
