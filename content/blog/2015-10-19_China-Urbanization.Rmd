@@ -170,7 +170,7 @@ Let's have a look on the data.
 
 ```{r quickPlotcitiesChina, message=FALSE, warning=FALSE}
 # we use kable to generate an html table with nice formatting
-knitr::kable(head(mainCitiesOfChina[mainCitiesOfChina$pop > 2*10^6,],4)) %>%
+knitr::kable(head(mainCitiesOfChina[mainCitiesOfChina$pop > 2,],4)) %>%
   kable_styling(
     bootstrap_options = c(
       "striped"
