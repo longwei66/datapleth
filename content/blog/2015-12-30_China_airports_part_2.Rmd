@@ -10,8 +10,6 @@ output: html_document
 
 
 
-## Introduction
-### Objective  
 One of the big problem for anybody interested in China and data science is the 
 availability of data sets. There are limited free resources available and they 
 are often incomplete or inaccurate. Getting data and especially cleaning data
@@ -25,19 +23,24 @@ of the Openflight data set we obtained in
 [part 1](https://datapleth.io/blog/2015/12/29/2015-12-29_china_airports_part_1/)
 
 
-### Dependencies
-We will need few standard packages as loaded bellow.
+<img src="../../../../../blog/2015-12-30_China_airports_part_2_files/figure-html/openflightAmelia-1.png" width="100%">
+
+
+
 
 ```{r libLoading, message=FALSE}
+# We will need few standard packages as loaded bellow.
 library(maptools)
 library(reshape2)
 library(grid)
 library(dplyr)
 library(ggplot2)
 library(Amelia)
+library(knitr)
+library(kableExtra)
 ```
 
-### Loading part 1 objects
+We start by loading part 1 objects.
 
 
 ```{r loadPart1, echo=TRUE,eval=TRUE}
@@ -47,17 +50,20 @@ load(file = "./data/chinese-airports-part-1.Rda")
 
 ## Openflight : exploratory data analysis
 
-### Overview
 
 ```{r checkOpenflight1}
 str(airportChinaOpenflights)
 ```
 
-Seems that we should have all field we need but some data may be missing, let's investigate. One of the way could be to use Rstudio `View()` function but this is not recommended, especially for large datasets. 
+Seems that we should have all field we need but some data may be missing, let's
+investigate.
 
 
 ### Variable `name`  
-By the command `unique(airportChinaOpenflights$name)` we find out that some of the names are containing Railway Stations, Ferry, ports. They are listed bellow with their IATA.FAA and ICAO code. All are missing, except GZS, after checking online, it's confirmed as a train station and not an airport.
+By the command `unique(airportChinaOpenflights$name)` we find out that some of 
+the names are containing Railway Stations, Ferry, ports. They are listed bellow
+with their IATA.FAA and ICAO code. All are missing, except GZS, after checking
+online, it's confirmed as a train station and not an airport.
 
 ```{r OpenflightsCheck7}
 test <- airportChinaOpenflights[
@@ -65,7 +71,15 @@ test <- airportChinaOpenflights[
         pattern = "RAILWAY|STATION| PORT|FERRY",
         x = toupper(airportChinaOpenflights$name)
         ),]
-head(dplyr::select(test, city, name, IATA.FAA, ICAO))
+knitr::kable(head(dplyr::select(test, city, name, IATA.FAA, ICAO))) %>%
+  kable_styling(
+    bootstrap_options = c(
+      "striped"
+      , "hover"
+      , "condensed"
+      , "responsive"
+      )
+    ) %>% scroll_box(width = "100%")
 ## Inititalise category field, consider all as Airport
 airportChinaOpenflights$category <- "civil airport"
 ```
@@ -88,16 +102,20 @@ No missing values, no NAs for city but we just need to fix Xi'an city name, whic
 ### Variable `IATA.FAA`
 From [wikipedia](https://en.wikipedia.org/wiki/International_Air_Transport_Association_airport_code)  
 
-> An IATA airport code, also known an IATA location identifier, IATA station code or simply a location identifier,[1] is a three-letter code designating many airports around the world, defined by the International Air Transport Association (IATA).
+> An IATA airport code, also known an IATA location identifier, IATA station 
+code or simply a location identifier,[1] is a three-letter code designating many
+airports around the world, defined by the International Air Transport 
+Association (IATA).
 
-Let's check the airport which are not matching a 3 letters pattern, what's their code ? As seen bellow, in fact the data is missing, let's substitute by NAs.
+Let's check the airport which are not matching a 3 letters pattern, what's their
+code ? As seen bellow, in fact the data is missing, let's substitute by NAs.
 
 ```{r OpenflightsIATA}
 unique(airportChinaOpenflights[!grepl( pattern = "[A-Z][A-Z][A-Z]",x = airportChinaOpenflights$IATA.FAA),]$IATA.FAA)
 airportChinaOpenflights[!grepl( pattern = "[A-Z][A-Z][A-Z]",x = airportChinaOpenflights$IATA.FAA),]$IATA.FAA <- NA
 ```
 
-**Is IATA unique ?**, seems yes ! No double identification by IATA.FAA  
+**Is IATA unique ?** ... seems yes ! No double identification by IATA.FAA  
 ```{r OFIATAunique}
 checkIATA <- as.data.frame(table(airportChinaOpenflights[!is.na(airportChinaOpenflights$IATA.FAA),]$IATA.FAA))
 names(checkIATA) <- c("IATA.FAA", "freq")
@@ -137,7 +155,9 @@ sum(is.na(airportChinaOpenflights$latitude.deg)) +
 sum(is.na(airportChinaOpenflights$longitude.deg)) +
 sum(is.na(airportChinaOpenflights$elevation.m))
 ```
-We don't have missing values in longitude, latitude and elevation. But do we have 0, does the data looks logical ? Let's build a plot of the distributions of these variables.
+We don't have missing values in longitude, latitude and elevation. But do we 
+have 0, does the data looks logical ? Let's build a plot of the distributions
+of these variables.
 
 ```{r checkOpenflight3, message=FALSE}
 ##      Create the 2x2 tiled chart to be filled by row
@@ -152,7 +172,13 @@ hist(
     )
 ```
 
-With this tiled chart we can visualize quickly that distribution of latitude and longitude looks reasonable with no extreme values included. However, regarding elevation, we have a lot of airport in low elevation and in the bottom right chart we see that most of them (>60) are at 0 meters or very close to zero. Actually we have  `r nrow(airportChinaOpenflights[airportChinaOpenflights$elevation.m == 0,])` airports with an elevation of 0 meters.
+With this tiled chart we can visualize quickly that distribution of latitude and
+longitude looks reasonable with no extreme values included. However, regarding
+elevation, we have a lot of airport in low elevation and in the bottom right
+chart we see that most of them (>60) are at 0 meters or very close to zero. 
+Actually we have
+`r nrow(airportChinaOpenflights[airportChinaOpenflights$elevation.m == 0,])`
+airports with an elevation of 0 meters.
 
 ```{r mapOpenflight}
 g <- ggplot() + theme_bw()
@@ -180,7 +206,7 @@ Let's use the Amelia package to get an overview of the missing data in the data 
 
 ```{r openflightAmelia, message=FALSE}
 missmap(airportChinaOpenflights, 
-        main = "Missingness Map of Openflight Chinese airport Dataset")
+        main = "Missingness of Openflight Chinese airports")
 ```
 
 We have a dataset of `r nrow(airportChinaOpenflights)` airports which still 
