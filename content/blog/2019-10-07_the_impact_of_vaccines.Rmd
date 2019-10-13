@@ -62,34 +62,68 @@ getTychoCondition <- function(
 mydata <- lapply(
     (0:21)*20000L
     , getTychoCondition
-    , condition = "Measles", country_iso = "US"
-    , limit = 20000, api_key_tycho = api_key_tycho)
+    , condition = "Measles"
+    , country_iso = "US"
+    , limit = 20000
+    , api_key_tycho = api_key_tycho
+    )
 measles <- data.table::rbindlist(mydata)
 ```
 
+Once the data is downloaded we need to filter out the cumulative information and
+agregate the data per year.
+
+
 ```{r agregateData}
+# remove cummulative data
+measles <- measles[ PartOfCumulativeCountSeries == 0]
 # add year
 measles[ , year := lubridate::year(anytime::anydate(PeriodStartDate))]
-
-measles_ag <- measles %>% group_by(Admin1Name,year) %>% summarise_at(c("Fatalities","CountValue"), sum) %>% data.table::as.data.table()
+# agregate per year
+measles_ag <- measles %>%
+    dplyr::group_by(Admin1Name,year) %>%
+    dplyr::summarise_at(c("Fatalities","CountValue"), sum) %>%
+    data.table::as.data.table()
+# update names for clarity
 data.table::setnames(measles_ag, c("state", "year", "fatalities", "cases"))
-head(measles_ag)
 measles_ag[ , state := as.factor(state) ]
+head(measles_ag)
+
 ```
 
 
 
 ```{r heatmap}
 dt <- measles_ag[ year > 1929 &
-                      ! (state %in% c("AMERICAN SAMOA","GUAM", "NORTHERN MARIANA ISLANDS", "PUERTO RICO"))]
+                      ! (state %in% c("AMERICAN SAMOA","GUAM", "NORTHERN MARIANA ISLANDS", "PUERTO RICO", "VIRGIN ISLANDS, U.S."))]
+
+mypal <- c("#e7f0fa", #lighter than light blue
+         "#c9e2f6", #light blue
+         "#95cbee", #blue
+         "#0099dc", #darker blue
+         "#4ab04a", #green
+         "#ffd73e", #yellow
+         "#eec73a", #mustard
+         "#e29421", #dark khaki (?)
+         "#f05336", #orange red
+         "#ce472e") #red
 
 g <- ggplot(data = dt, aes(x = year, y = state, fill = cases)) +
     geom_tile(colour="white", linejoin = 2, 
               width=.9, height=.9) + theme_minimal()  +
-    scale_fill_viridis_c(
-        na.value=rgb(246, 246, 246, max=255)
+    scale_fill_gradientn(
+        colours = mypal
+        , values=c(0, 0.01, 0.02, 0.03, 0.09, 0.1, .15, .25, .4, .5, 1)
         #, limits=c(0, 4000)
-        , direction = -1, option = "A"
+        , na.value=rgb(246, 246, 246, max=255)
+        #, labels=c("0k", "1k", "2k", "3k", "4k")
+        , guide = guide_colourbar(
+            ticks=T
+            , nbin=50
+            #, barheight=.5
+            , label=T
+            #, barwidth=10
+            )
         ) +
     scale_y_discrete(limits = rev(levels(droplevels(dt$state)))) +
     scale_x_continuous(expand=c(0,0), 
@@ -97,11 +131,34 @@ g <- ggplot(data = dt, aes(x = year, y = state, fill = cases)) +
     geom_segment(x=1963, xend=1963, y=0, yend=56.5, size=.9) +
     theme(
         axis.title.y=element_blank()
+        #, legend.position=c(.5, -.13)
+        #, legend.direction="horizontal"
         , axis.text.y=element_blank()
         , axis.text.x = element_text(angle = 90)
+        , panel.grid = element_blank()
         #, axis.ticks.y=element_blank()
         )
 g
-rayshader::plot_gg(g)
 ```
 
+
+
+
+
+```{r}
+rayshader::plot_gg(
+    g
+    , zoom = 0.5
+    , theta = 20
+    , phi = 30
+    , windowsize = c(1024,768)
+    , multicore = TRUE
+    )
+#rayshader::render_depth(focus = 0.68, focallength = 200)
+```
+
+
+
+## References
+
+https://www.mikelee.co/posts/2017-06-28-wsj-measles-vaccination-chart/
