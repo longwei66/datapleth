@@ -8,20 +8,22 @@ banner: "blog/img/example_satellite_mapbox_0.png"
 output: html_document
 ---
 
-<img src="https://miro.medium.com/max/1248/1*-Rb6MUZMO8fYnhOTpEUrKA.png">
 
-Figure 3: DeBold & Freedman’s (2015) graph of the impact of vaccination on measles. The visual message requires few words. Source: http://graphics.wsj.com/infectious-diseases-and-vaccines/
+The Wall Street Journal has published in 2015 an set a of datavisulization to 
+illustrate the impact of vaccines on the USA population ([DeBold & Freedman - 
+2015](http://graphics.wsj.com/infectious-diseases-and-vaccines/)).
+This article presents heat maps across all 50 USA states for various
+conditions. For most conditions, such as measles, polio, rubella, the effect of
+the vaccin is very visible.
 
+In this post we are going to replicate the analysis and attempt to generate
+similar heatmaps. There are numerous example already existing (see references)
+but we complement those by 3D visualizations (3D heat maps and 3D maps).
 
-http://graphics.wsj.com/infectious-diseases-and-vaccines/
+<!-- <img src="/img/illustrations/wsj_measles_2015.png" alt="Impact of Measles vaccine in USA" width="700"/> -->
 
-demo of [tycho](https://www.tycho.pitt.edu/dataset/api/) satellite API. 
-
-https://medium.com/@michael.friendly/visual-thinking-graphic-discoveries-128468677592
 
 ## Preparation
-
-We will need first several geographical and graphical libraries of R
 
 ```{r loadlibs, message=FALSE, warning=FALSE}
 library(knitr)
@@ -33,17 +35,21 @@ library(purrr)
 library(png)
 library(dplyr)
 library(ggplot2)
+library(plotly)
+library(ggthemes)
 library(data.table)
+library(xml2)
+library(rvest)
 ```
 
 
 ```{r myparameters, message=FALSE, warning=FALSE}
 api_key_tycho <- Sys.getenv("API_TYCHO")
-
 ```
 
-Let's download the data from Tycho project API. This dataset has to be agredated
-as condition data are provided on a weekly basis.
+Once loaded the needed libraries, we get the raw data for measles condition
+using project [Tycho's API](https://www.tycho.pitt.edu/dataset/api/). 
+
 
 ```{r getData, message=FALSE, warning=FALSE}
 # a function to download data from Tycho Website
@@ -70,8 +76,9 @@ mydata <- lapply(
 measles <- data.table::rbindlist(mydata)
 ```
 
-Once the data is downloaded we need to filter out the cumulative information and
-agregate the data per year.
+This API provides data on a weekly basis, we'll need to agregate by year and 
+filter out the cumulative information and agregate the data per year. We are
+obtaining the count to fatalities and cases per state over the years.
 
 
 ```{r agregateData}
@@ -92,6 +99,85 @@ head(measles_ag)
 ```
 
 
+We'll need mapping between full names of USA States and their code, this 
+information in available on tycho api. Once we obtain the data we merge it with
+measles data.
+
+
+```{r}
+url <- glue::glue("https://www.tycho.pitt.edu/api/admin1?apikey={api_key_tycho}&CountryISO=US")
+states <- data.table::fread(url)
+states[ , state_code := gsub(pattern = "^US-", replacement = "", x = Admin1ISO)]
+states[ , ':=' (CountryName = NULL, Admin1ISO = NULL, CountryISO = NULL ) ]
+head(states)
+```
+
+```{r}
+measles_ag <- merge(x = measles_ag, y = states, by.x = "state", by.y = "Admin1Name" )
+```
+
+
+As we want to compute the incidence rate, which is defined as the number of 
+cases per person-year of observation, we need to get population data per state
+and per year. We couldn't find such a dataset (really?) so we decided to scrap
+it on wikipedia 
+(using [FRED](https://fred.stlouisfed.org/release/tables?rid=118&eid=259194)
+as source)
+
+
+```{r getStatePopulation, message=FALSE, warning=FALSE}
+url <- "https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population#1900%E2%80%932015,_Federal_Reserve_economic_data"
+
+usa_pop <- xml2::read_html(url) %>%
+    rvest::html_node(xpath = '//*[@id="mw-content-text"]/div/table[5]') %>%
+    rvest::html_table() 
+names(usa_pop) <- make.names(names(usa_pop))
+usa_pop_long <- data.table::as.data.table(melt(usa_pop, id = c("Jan.1..year")))
+setnames(usa_pop_long, c("year","state","population"))
+usa_pop_long[ , population := as.numeric(gsub(pattern = ",", replacement = "", x = population))]
+
+```
+
+We check the data comparing with availabe chart on wikipedia, you can hover on
+the chart to get state name.
+
+
+```{r}
+g <- ggplot(usa_pop_long) +
+    geom_line(aes(x = year, y = population, col = state)) +
+    scale_y_log10() + theme_tufte() +
+    theme(legend.position = "none") +
+    ggtitle("Evolution of USA population per state") 
+p <- plotly::ggplotly(g)
+
+## Fix plotly label spacing
+## thanks : 
+## https://stackoverflow.com/questions/42763280/r-ggplot-and-plotly-axis-margin-wont-change
+#p[['x']][['layout']][['annotations']][[1]][['y']] <- -0.06
+#p[['x']][['layout']][['annotations']][[2]][['x']] <- -0.06
+p %>% plotly::config(displayModeBar = F) 
+```
+
+
+It looks all good, now we can merge this population data with measles count and
+we compute incidence ratio (count per year per 100000 people).
+
+```{r}
+measles_ag <- merge(
+    x = measles_ag
+    , y = usa_pop_long
+    , by.x = c("year","state_code")
+    , by.y = c("year","state")
+    )
+measles_ag[ , incidence := cases / population * 100000]
+measles_ag[ , state_code := as.factor(state_code)]
+```
+
+
+
+
+
+
 
 ```{r heatmap}
 dt <- measles_ag[ year > 1929 &
@@ -108,7 +194,7 @@ mypal <- c("#e7f0fa", #lighter than light blue
          "#f05336", #orange red
          "#ce472e") #red
 
-g <- ggplot(data = dt, aes(x = year, y = state, fill = cases)) +
+g <- ggplot(data = dt, aes(x = year, y = state_code, fill = incidence)) +
     geom_tile(colour="white", linejoin = 2, 
               width=.9, height=.9) + theme_minimal()  +
     scale_fill_gradientn(
@@ -116,7 +202,7 @@ g <- ggplot(data = dt, aes(x = year, y = state, fill = cases)) +
         , values=c(0, 0.01, 0.02, 0.03, 0.09, 0.1, .15, .25, .4, .5, 1)
         #, limits=c(0, 4000)
         , na.value=rgb(246, 246, 246, max=255)
-        #, labels=c("0k", "1k", "2k", "3k", "4k")
+        , labels=c("0k", "1k", "2k", "3k")
         , guide = guide_colourbar(
             ticks=T
             , nbin=50
@@ -125,7 +211,7 @@ g <- ggplot(data = dt, aes(x = year, y = state, fill = cases)) +
             #, barwidth=10
             )
         ) +
-    scale_y_discrete(limits = rev(levels(droplevels(dt$state)))) +
+    scale_y_discrete(limits = rev(levels(droplevels(dt$state_code)))) +
     scale_x_continuous(expand=c(0,0), 
                        breaks=seq(1930, 2010, by=10)) +
     geom_segment(x=1963, xend=1963, y=0, yend=56.5, size=.9) +
@@ -133,10 +219,10 @@ g <- ggplot(data = dt, aes(x = year, y = state, fill = cases)) +
         axis.title.y=element_blank()
         #, legend.position=c(.5, -.13)
         #, legend.direction="horizontal"
-        , axis.text.y=element_blank()
+        #, axis.text.y=element_blank()
         , axis.text.x = element_text(angle = 90)
         , panel.grid = element_blank()
-        #, axis.ticks.y=element_blank()
+        , axis.ticks.y=element_blank()
         )
 g
 ```
@@ -145,7 +231,7 @@ g
 
 
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 rayshader::plot_gg(
     g
     , zoom = 0.5
@@ -162,3 +248,4 @@ rayshader::plot_gg(
 ## References
 
 https://www.mikelee.co/posts/2017-06-28-wsj-measles-vaccination-chart/
+https://medium.com/@michael.friendly/visual-thinking-graphic-discoveries-128468677592
