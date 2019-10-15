@@ -4,7 +4,7 @@ date: "2019-10-07T13:39:46+02:00"
 author: "Datapleth.io"
 tags: ["api", "map"]
 categories: ["geography"]
-banner: "blog/img/example_satellite_mapbox_0.png"
+banner: "blog/2019-10-07_the_impact_of_vaccines_files/figure-html/smallMultipleMap-1.png"
 output: html_document
 ---
 
@@ -20,10 +20,12 @@ In this post we are going to replicate the analysis and attempt to generate
 similar heatmaps. There are numerous example already existing (see references)
 but we complement those by 3D visualizations (3D heat maps and 3D maps).
 
-<!-- <img src="/img/illustrations/wsj_measles_2015.png" alt="Impact of Measles vaccine in USA" width="700"/> -->
-
+<center>
+<img src="/img/illustrations/wsj_measles_2015.png" alt="Impact of Measles vaccine in USA" width="500"/>
+</center>
 
 ## Preparation
+
 
 ```{r loadlibs, message=FALSE, warning=FALSE}
 library(knitr)
@@ -40,18 +42,11 @@ library(ggthemes)
 library(data.table)
 library(xml2)
 library(rvest)
-```
+library(maps)
 
-
-```{r myparameters, message=FALSE, warning=FALSE}
 api_key_tycho <- Sys.getenv("API_TYCHO")
-```
+set.seed(1234)
 
-Once loaded the needed libraries, we get the raw data for measles condition
-using project [Tycho's API](https://www.tycho.pitt.edu/dataset/api/). 
-
-
-```{r getData, message=FALSE, warning=FALSE}
 # a function to download data from Tycho Website
 getTychoCondition <- function(
     condition = "Measles"
@@ -76,9 +71,13 @@ mydata <- lapply(
 measles <- data.table::rbindlist(mydata)
 ```
 
+Once loaded the needed libraries, we get the raw data for measles condition
+using project [Tycho's API](https://www.tycho.pitt.edu/dataset/api/). 
+
 This API provides data on a weekly basis, we'll need to agregate by year and 
-filter out the cumulative information and agregate the data per year. We are
-obtaining the count to fatalities and cases per state over the years.
+filter out the cumulative information and agregate the data per year. We
+obtain the count to fatalities and cases per state over the years as illustrated
+bellow in a short random extract.
 
 
 ```{r agregateData}
@@ -94,11 +93,20 @@ measles_ag <- measles %>%
 # update names for clarity
 data.table::setnames(measles_ag, c("state", "year", "fatalities", "cases"))
 measles_ag[ , state := as.factor(state) ]
-head(measles_ag)
+
+knitr::kable(dplyr::sample_n(measles_ag,7)) %>%
+  kable_styling(
+    bootstrap_options = c(
+      "striped"
+      , "hover"
+      , "condensed"
+      , "responsive"
+      )
+    ) %>% scroll_box(width = "100%")
 
 ```
 
-
+<br>
 We'll need mapping between full names of USA States and their code, this 
 information in available on tycho api. Once we obtain the data we merge it with
 measles data.
@@ -109,7 +117,16 @@ url <- glue::glue("https://www.tycho.pitt.edu/api/admin1?apikey={api_key_tycho}&
 states <- data.table::fread(url)
 states[ , state_code := gsub(pattern = "^US-", replacement = "", x = Admin1ISO)]
 states[ , ':=' (CountryName = NULL, Admin1ISO = NULL, CountryISO = NULL ) ]
-head(states)
+
+knitr::kable(dplyr::sample_n(states,5)) %>%
+  kable_styling(
+    bootstrap_options = c(
+      "striped"
+      , "hover"
+      , "condensed"
+      , "responsive"
+      )
+    ) %>% scroll_box(width = "100%")
 ```
 
 ```{r}
@@ -121,7 +138,7 @@ As we want to compute the incidence rate, which is defined as the number of
 cases per person-year of observation, we need to get population data per state
 and per year. We couldn't find such a dataset (really?) so we decided to scrap
 it on wikipedia 
-(using [FRED](https://fred.stlouisfed.org/release/tables?rid=118&eid=259194)
+(which is using [FRED](https://fred.stlouisfed.org/release/tables?rid=118&eid=259194)
 as source)
 
 
@@ -135,7 +152,7 @@ names(usa_pop) <- make.names(names(usa_pop))
 usa_pop_long <- data.table::as.data.table(melt(usa_pop, id = c("Jan.1..year")))
 setnames(usa_pop_long, c("year","state","population"))
 usa_pop_long[ , population := as.numeric(gsub(pattern = ",", replacement = "", x = population))]
-
+usa_pop_long <- merge(x = usa_pop_long, y = states, by.x = "state", by.y = "state_code")
 ```
 
 We check the data comparing with availabe chart on wikipedia, you can hover on
@@ -150,11 +167,6 @@ g <- ggplot(usa_pop_long) +
     ggtitle("Evolution of USA population per state") 
 p <- plotly::ggplotly(g)
 
-## Fix plotly label spacing
-## thanks : 
-## https://stackoverflow.com/questions/42763280/r-ggplot-and-plotly-axis-margin-wont-change
-#p[['x']][['layout']][['annotations']][[1]][['y']] <- -0.06
-#p[['x']][['layout']][['annotations']][[2]][['x']] <- -0.06
 p %>% plotly::config(displayModeBar = F) 
 ```
 
@@ -168,9 +180,11 @@ measles_ag <- merge(
     , y = usa_pop_long
     , by.x = c("year","state_code")
     , by.y = c("year","state")
+    , all.y = TRUE
     )
 measles_ag[ , incidence := cases / population * 100000]
 measles_ag[ , state_code := as.factor(state_code)]
+setnames(measles_ag, old = "Admin1Name", new = "state_name")
 ```
 
 
@@ -179,9 +193,9 @@ measles_ag[ , state_code := as.factor(state_code)]
 
 
 
-```{r heatmap}
+```{r heatmap, message=FALSE, warning=FALSE}
 dt <- measles_ag[ year > 1929 &
-                      ! (state %in% c("AMERICAN SAMOA","GUAM", "NORTHERN MARIANA ISLANDS", "PUERTO RICO", "VIRGIN ISLANDS, U.S."))]
+                      ! (state_name %in% c("AMERICAN SAMOA","GUAM", "NORTHERN MARIANA ISLANDS", "PUERTO RICO", "VIRGIN ISLANDS, U.S."))]
 
 mypal <- c("#e7f0fa", #lighter than light blue
          "#c9e2f6", #light blue
@@ -200,31 +214,86 @@ g <- ggplot(data = dt, aes(x = year, y = state_code, fill = incidence)) +
     scale_fill_gradientn(
         colours = mypal
         , values=c(0, 0.01, 0.02, 0.03, 0.09, 0.1, .15, .25, .4, .5, 1)
-        #, limits=c(0, 4000)
+        , limits=c(0, 4000)
         , na.value=rgb(246, 246, 246, max=255)
-        , labels=c("0k", "1k", "2k", "3k")
+        , labels=c("0k", "1k", "2k", "3k", "4k")
         , guide = guide_colourbar(
             ticks=T
             , nbin=50
             #, barheight=.5
             , label=T
-            #, barwidth=10
+            , barwidth= 0.5
             )
         ) +
     scale_y_discrete(limits = rev(levels(droplevels(dt$state_code)))) +
     scale_x_continuous(expand=c(0,0), 
                        breaks=seq(1930, 2010, by=10)) +
     geom_segment(x=1963, xend=1963, y=0, yend=56.5, size=.9) +
+    ggtitle("Evolution of Measles incidence in USA (case/100000)") +
     theme(
         axis.title.y=element_blank()
         #, legend.position=c(.5, -.13)
         #, legend.direction="horizontal"
         #, axis.text.y=element_blank()
+        , axis.text.y = element_text(size = 8)
         , axis.text.x = element_text(angle = 90)
         , panel.grid = element_blank()
         , axis.ticks.y=element_blank()
         )
-g
+p <- plotly::ggplotly(g)
+
+p %>% plotly::config(displayModeBar = F) 
+
+```
+
+
+
+## Alternative view & maps
+
+```{r smallMultipleMap, message=FALSE, warning=FALSE}
+# load United States state map data
+usa_states <- map_data("state")
+usa_states$region <- toupper(usa_states$region)
+
+
+merged_states <- merge(
+    x = usa_states
+    , y = dt[ year %in% c(1950:1985) & !(state %in% c("HAWAII", "ALASKA"))]
+    , by.x = "region"
+    , by.y = "state_name"
+    , all.x = TRUE
+    , all.y = TRUE
+    )
+
+p <- ggplot()
+p <- p + geom_polygon(
+    data = merged_states
+    , aes(x = long, y = lat, group = group, fill = incidence)
+    , color="white"
+    , size = 0.2
+    ) +
+    theme_tufte() + coord_map() + facet_wrap(facets = . ~ year) +
+    scale_fill_gradientn(
+        colours = mypal
+        , values=c(0, 0.01, 0.02, 0.03, 0.09, 0.1, .15, .25, .4, .5, 1)
+        , limits=c(0, 4000)
+        , na.value=rgb(246, 246, 246, max=255)
+        #, labels=c("0k", "1k", "2k", "3k")
+        , guide = guide_colourbar(
+            ticks=T
+            , nbin=50
+            #, barheight=.5
+            , label=T
+            , barwidth= 0.5
+            )
+        ) +
+    ggtitle("Evolution of Measles incidence in USA (case/100000)") +
+    theme(
+        axis.title = element_blank()
+        , axis.text = element_blank()
+        , axis.ticks = element_blank()
+        )
+p
 ```
 
 
@@ -233,7 +302,7 @@ g
 
 ```{r eval=FALSE, include=FALSE}
 rayshader::plot_gg(
-    g
+    p
     , zoom = 0.5
     , theta = 20
     , phi = 30
