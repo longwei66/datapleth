@@ -2,22 +2,22 @@
 title: "The impact of vaccines, case of Measles in USA"
 date: "2019-10-07T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["api", "map"]
-categories: ["geography"]
+tags: ["health", "map", "usa"]
+categories: ["geography", "health", "dataviz"]
 banner: "blog/2019-10-07_the_impact_of_vaccines_files/figure-html/smallMultipleMap-1.png"
 output: html_document
 ---
 
 
-The Wall Street Journal has published in 2015 an set a of datavisulization to 
+The Wall Street Journal has published in 2015 an set a of data visualization to 
 illustrate the impact of vaccines on the USA population ([DeBold & Freedman - 
 2015](http://graphics.wsj.com/infectious-diseases-and-vaccines/)).
 This article presents heat maps across all 50 USA states for various
 conditions. For most conditions, such as measles, polio, rubella, the effect of
-the vaccin is very visible.
+the vaccine is very visible.
 
 In this post we are going to replicate the analysis and attempt to generate
-similar heatmaps. There are numerous example already existing (see references)
+similar heat maps. There are numerous example already existing (see references)
 but we complement those by 3D visualizations (3D heat maps and 3D maps).
 
 <center>
@@ -74,8 +74,8 @@ measles <- data.table::rbindlist(mydata)
 Once loaded the needed libraries, we get the raw data for measles condition
 using project [Tycho's API](https://www.tycho.pitt.edu/dataset/api/). 
 
-This API provides data on a weekly basis, we'll need to agregate by year and 
-filter out the cumulative information and agregate the data per year. We
+This API provides data on a weekly basis, we'll need to aggregate by year and 
+filter out the cumulative information and aggregate the data per year. We
 obtain the count to fatalities and cases per state over the years as illustrated
 bellow in a short random extract.
 
@@ -108,7 +108,7 @@ knitr::kable(dplyr::sample_n(measles_ag,7)) %>%
 
 <br>
 We'll need mapping between full names of USA States and their code, this 
-information in available on tycho api. Once we obtain the data we merge it with
+information in available on Tycho api. Once we obtain the data we merge it with
 measles data.
 
 
@@ -136,8 +136,8 @@ measles_ag <- merge(x = measles_ag, y = states, by.x = "state", by.y = "Admin1Na
 
 As we want to compute the incidence rate, which is defined as the number of 
 cases per person-year of observation, we need to get population data per state
-and per year. We couldn't find such a dataset (really?) so we decided to scrap
-it on wikipedia 
+and per year. We couldn't find such a data set (really?) so we decided to scrap
+it on Wikipedia 
 (which is using [FRED](https://fred.stlouisfed.org/release/tables?rid=118&eid=259194)
 as source)
 
@@ -149,13 +149,13 @@ usa_pop <- xml2::read_html(url) %>%
     rvest::html_node(xpath = '//*[@id="mw-content-text"]/div/table[5]') %>%
     rvest::html_table() 
 names(usa_pop) <- make.names(names(usa_pop))
-usa_pop_long <- data.table::as.data.table(melt(usa_pop, id = c("Jan.1..year")))
+usa_pop_long <- data.table::as.data.table(melt(usa_pop, id = names(usa_pop)[1]))
 setnames(usa_pop_long, c("year","state","population"))
 usa_pop_long[ , population := as.numeric(gsub(pattern = ",", replacement = "", x = population))]
 usa_pop_long <- merge(x = usa_pop_long, y = states, by.x = "state", by.y = "state_code")
 ```
 
-We check the data comparing with availabe chart on wikipedia, you can hover on
+We check the data comparing with available chart on Wikipedia, you can hover on
 the chart to get state name.
 
 
@@ -189,13 +189,35 @@ setnames(measles_ag, old = "Admin1Name", new = "state_name")
 
 
 
+We can now reproduce the heat map for the WSJ, they did an amazing work on the
+color scale, you can found the color reference in the source code but to save
+time we reused the code of Michael Lee - 2019 (see references at the end of the
+post). We observe a significant drop of measles incidence following the
+introduction of the vaccine in 1964.
 
+From [wikipedia](https://en.wikipedia.org/wiki/Measles_vaccine) :
+
+> In the United States, reported cases of measles fell from hundreds of 
+thousands to tens of thousands per year following introduction of the vaccine 
+in 1963 (see chart at right). Increasing uptake of the vaccine following 
+outbreaks in 1971 and 1977 brought this down to thousands of cases per year in 
+the 1980s. An outbreak of almost 30,000 cases in 1990 led to a renewed push for
+vaccination and the addition of a second vaccine to the recommended schedule. 
 
 
 
 ```{r heatmap, message=FALSE, warning=FALSE}
+filter_out <- c(
+    "AMERICAN SAMOA"
+    ,"GUAM"
+    , "NORTHERN MARIANA ISLANDS"
+    , "PUERTO RICO"
+    , "VIRGIN ISLANDS, U.S."
+    )
+
+
 dt <- measles_ag[ year > 1929 &
-                      ! (state_name %in% c("AMERICAN SAMOA","GUAM", "NORTHERN MARIANA ISLANDS", "PUERTO RICO", "VIRGIN ISLANDS, U.S."))]
+                      ! (state_name %in% filter_out )]
 
 mypal <- c("#e7f0fa", #lighter than light blue
          "#c9e2f6", #light blue
@@ -208,7 +230,10 @@ mypal <- c("#e7f0fa", #lighter than light blue
          "#f05336", #orange red
          "#ce472e") #red
 
-g <- ggplot(data = dt, aes(x = year, y = state_code, fill = incidence)) +
+g <- ggplot(
+    data = dt
+    , aes(x = year, y = state_code, fill = incidence)
+    ) +
     geom_tile(colour="white", linejoin = 2, 
               width=.9, height=.9) + theme_minimal()  +
     scale_fill_gradientn(
@@ -217,25 +242,16 @@ g <- ggplot(data = dt, aes(x = year, y = state_code, fill = incidence)) +
         , limits=c(0, 4000)
         , na.value=rgb(246, 246, 246, max=255)
         , labels=c("0k", "1k", "2k", "3k", "4k")
-        , guide = guide_colourbar(
-            ticks=T
-            , nbin=50
-            #, barheight=.5
-            , label=T
-            , barwidth= 0.5
-            )
+        , guide = guide_colourbar( barwidth= 0.6 )
         ) +
     scale_y_discrete(limits = rev(levels(droplevels(dt$state_code)))) +
     scale_x_continuous(expand=c(0,0), 
                        breaks=seq(1930, 2010, by=10)) +
-    geom_segment(x=1963, xend=1963, y=0, yend=56.5, size=.9) +
+    geom_segment(x=1963, xend=1963, y=0, yend=56.5, size=.7) +
     ggtitle("Evolution of Measles incidence in USA (case/100000)") +
     theme(
         axis.title.y=element_blank()
-        #, legend.position=c(.5, -.13)
-        #, legend.direction="horizontal"
-        #, axis.text.y=element_blank()
-        , axis.text.y = element_text(size = 8)
+        , axis.text.y = element_text(size = 6)
         , axis.text.x = element_text(angle = 90)
         , panel.grid = element_blank()
         , axis.ticks.y=element_blank()
@@ -247,8 +263,15 @@ p %>% plotly::config(displayModeBar = F)
 ```
 
 
+## Alternative view : maps
 
-## Alternative view & maps
+The heat map plot above is interesting as it gives a global overview over time
+for all the states but it's quite difficult to get a spatial view on the topic.
+Thus we propose to use small multiple plot based on a map of USA states over
+time and incidence per state using the same color code. We can clearly see the
+trend toward lower incidence as well as the outbreaks from 1971 (Montana, 
+Texas, Kentucky) and 1977 (Montana, Iowa). Seems also that Florida was less
+exposed over the years.
 
 ```{r smallMultipleMap, message=FALSE, warning=FALSE}
 # load United States state map data
@@ -316,5 +339,17 @@ rayshader::plot_gg(
 
 ## References
 
-https://www.mikelee.co/posts/2017-06-28-wsj-measles-vaccination-chart/
-https://medium.com/@michael.friendly/visual-thinking-graphic-discoveries-128468677592
+- https://www.mikelee.co/posts/2017-06-28-wsj-measles-vaccination-chart/
+- https://medium.com/@michael.friendly/visual-thinking-graphic-discoveries-128468677592
+
+
+
+## Code information
+
+This post was regenerated on `r Sys.Date()` with the following set-up.
+
+```{r codeInfo, message=FALSE, warning=FALSE}
+sessionInfo()
+```
+
+
