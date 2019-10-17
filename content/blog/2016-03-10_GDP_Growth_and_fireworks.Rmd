@@ -65,7 +65,7 @@ We will scrape [wikipedia](https://en.wikipedia.org/wiki/Chinese_New_Year) to ex
 
 ```{r scrapeWikipediacny, echo=TRUE, message=FALSE, warning=FALSE}
 url <- "https://en.wikipedia.org/wiki/Chinese_New_Year"
-table_xpath <- '//*[@id="mw-content-text"]/div/table[4]'
+table_xpath <- '//*[@id="mw-content-text"]/div/table[3]'
 cny <- url %>%
   read_html() %>%
   html_nodes(xpath= table_xpath) %>%
@@ -94,6 +94,7 @@ aqi <- aqi[city != "Paris"]
 ```
 
 The codebook for this dataset will be soon available. We only keep here data for chinese new year date and eve.
+
 
 ```{r subsetPM2.5}
 aqicny <- aqi[date %in% cny$date | date %in% cny$eve]
@@ -203,6 +204,7 @@ p %>% config(displayModeBar = F)
 
 
 ## Conclusions
+
 We have now two clean datasets with PM2.5 readings for new year's eve and new year's day as well as GDP growth for the provinces concerned.
 
 Let's save the data for next post
@@ -211,5 +213,13 @@ Let's save the data for next post
 save(gdpGrowth, aqicny, file = "./data/gqp-aqi-part1.Rda")
 ```
 
+
+## Code information
+
+This post was regenerated on `r Sys.Date()` with the following set-up.
+
+```{r codeInfo, message=FALSE, warning=FALSE}
+sessionInfo()
+```
 
 
