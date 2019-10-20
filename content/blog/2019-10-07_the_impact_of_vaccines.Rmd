@@ -215,9 +215,14 @@ filter_out <- c(
     , "VIRGIN ISLANDS, U.S."
     )
 
+# Save a copy
+measles_usa_mainland <- measles_ag[ ! (state_name %in% filter_out )]
+save(measles_usa_mainland, file = "./data/measles_usa_mainland.Rda")
+
 
 dt <- measles_ag[ year > 1929 &
                       ! (state_name %in% filter_out )]
+
 
 mypal <- c("#e7f0fa", #lighter than light blue
          "#c9e2f6", #light blue
