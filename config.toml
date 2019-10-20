@@ -1,6 +1,6 @@
 baseurl = "https://datapleth.io/"
 title = "Datapleth.io"
-theme = "hugo-universal-theme-datapleth"
+theme = "hugo-universal-theme-mod-datapleth"
 themesDir = "./themes/"
 languageCode = "en-us"
 # Site language. Available translations in the theme's `/i18n` directory.
