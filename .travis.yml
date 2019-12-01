@@ -36,6 +36,7 @@ script:
 - Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
 - Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
 - Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
+- Rscript -e 'install.packages(c("rayshader"))'
 - Rscript -e 'blogdown::install_hugo()'
 - Rscript -e 'blogdown::build_site()'
 after_success:
