@@ -31,17 +31,17 @@ jobs:
   script:
   - stage: package_install
     script:
-      - Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
-      - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
-      - Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
-      - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
-      - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
-      - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
-      - Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
-      - Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
-      - Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
+      #- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
+      #- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
+      #- Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
+      #- Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
+      #- Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
+      #- Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
+      #- Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
+      #- Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
+      #- Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
       - Rscript -e 'install.packages(c("rayshader"))'
-      - Rscript -e 'blogdown::install_hugo()'
+      #- Rscript -e 'blogdown::install_hugo()'
   - stage: build_site
     script: 
       #- Rscript -e 'blogdown::build_site()'
