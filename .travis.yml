@@ -30,7 +30,7 @@ addons:
 before_install:
 - bash _scripts/install.sh
 jobs:
-  script:
+  include:
   - stage: package_install
     script:
       #- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
