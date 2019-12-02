@@ -4,6 +4,7 @@ latex: false
 branches:
   only:
   - master
+  - dev
 sudo: required
 cache:
   packages: true
@@ -43,7 +44,7 @@ jobs:
       - Rscript -e 'blogdown::install_hugo()'
   - stage: build_site
     script: 
-      - Rscript -e 'blogdown::build_site()'
+      #- Rscript -e 'blogdown::build_site()'
 after_success:
 - bash _scripts/deploy.sh
 env:
