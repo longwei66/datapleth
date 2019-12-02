@@ -5,6 +5,10 @@ branches:
   only:
   - master
 sudo: required
+cache:
+  packages: true
+  directories:
+  - "$HOME/bin"
 apt_packages:
 - default-jre
 - default-jdk
@@ -16,10 +20,6 @@ apt_packages:
 - libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
 - libjq-dev
 - cargo
-cache:
-  packages: true
-  directories:
-  - "$HOME/bin"
 addons:
   ssh_known_hosts:
   - datapleth.io
