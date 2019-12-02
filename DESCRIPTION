@@ -4,3 +4,7 @@ Title: Does not matter.
 Version: 0.0.1
 Imports: blogdown
 Remotes: rstudio/blogdown
+Description: just a placeholder
+License: GPL3
+Author: datapleth
+Maintainer: datapleth
