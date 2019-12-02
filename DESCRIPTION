@@ -6,5 +6,5 @@ Imports: blogdown
 Remotes: rstudio/blogdown
 Description: just a placeholder
 License: GPL3
-Author: datapleth
-Maintainer: datapleth
+Author: Wei Long [aut, cre]
+Maintainer: Wei Long <longwei66@hmail.com>
