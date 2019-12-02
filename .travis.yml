@@ -7,7 +7,7 @@ branches:
   - dev
 sudo: required
 cache:
-  packages: true
+  packages: false
   directories:
   - "$HOME/bin"
 git:
