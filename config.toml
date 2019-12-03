@@ -1,4 +1,5 @@
-baseurl = "https://datapleth.io/"
+baseurl = "https://dev.datapleth.io/"
+# baseurl = "https://datapleth.io/"
 title = "Datapleth.io"
 theme = "hugo-universal-theme-mod"
 themesDir = "./themes/"
