@@ -32,7 +32,7 @@ before_install:
 - bash _scripts/install.sh
 jobs:
   include:
-  - stage: package_install
+  - stage: "Install R Packages"
     script:
       - Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
       - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
@@ -45,11 +45,11 @@ jobs:
       - Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
       - Rscript -e 'install.packages(c("rayshader", "magick"))'
       - Rscript -e 'blogdown::install_hugo()'
-  - stage: build_site
+  - stage: "Build site with blogdown & deploy"
     script: 
       - Rscript -e 'blogdown::build_site()'
-after_success:
-- bash _scripts/deploy.sh
+    after_success:
+      - bash _scripts/deploy.sh
 env:
   global:
   - RGL_USE_NULL=TRUE
