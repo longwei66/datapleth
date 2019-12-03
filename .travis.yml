@@ -21,7 +21,7 @@ apt_packages:
 - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
 - fonts-cwtex-ming fonts-cwtex-yen libudunits2-dev
 - libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
-- libjq-dev libcgal-dev
+- libjq-dev mesa-common-dev libglu1-mesa-dev
 - cargo
 addons:
   ssh_known_hosts:
