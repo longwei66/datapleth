@@ -4,7 +4,14 @@ latex: false
 branches:
   only:
   - master
+  - dev
 sudo: required
+cache:
+  packages: true
+  directories:
+  - "$HOME/bin"
+git:
+  submodules: false
 apt_packages:
 - default-jre
 - default-jdk
@@ -14,35 +21,38 @@ apt_packages:
 - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
 - fonts-cwtex-ming fonts-cwtex-yen libudunits2-dev
 - libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
-- libjq-dev
+- libjq-dev mesa-common-dev libglu1-mesa-dev
 - cargo
-cache:
-  packages: true
-  directories:
-  - "$HOME/bin"
+- xorg libx11-dev libmagick++-dev
 addons:
   ssh_known_hosts:
   - datapleth.io
   - 188.166.216.253
 before_install:
 - bash _scripts/install.sh
-script:
-- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
-- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
-- Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
-- Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
-- Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
-- Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
-- Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
-- Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
-- Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
-- Rscript -e 'install.packages(c("rayshader"))'
-- Rscript -e 'blogdown::install_hugo()'
-- Rscript -e 'blogdown::build_site()'
+jobs:
+  include:
+  - stage: package_install
+    script:
+      - Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
+      - Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
+      - Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
+      - Rscript -e 'install.packages(c("rJava", "OpenStreetMap", "rvest", "grid"))'
+      - Rscript -e 'install.packages(c("lubridate", "data.table", "ggthemes"))'
+      - Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
+      - Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
+      - Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
+      - Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
+      - Rscript -e 'install.packages(c("rayshader", "magick"))'
+      - Rscript -e 'blogdown::install_hugo()'
+  - stage: build_site
+    script: 
+      - Rscript -e 'blogdown::build_site()'
 after_success:
 - bash _scripts/deploy.sh
 env:
   global:
+  - RGL_USE_NULL=TRUE
   - secure: "p/1LnFQbraxVITSJeeABtPuWGNjsB/fxswyeSfOVqUPsowGTKG4uvsGYJ2NorD92kjNZI/If23x8C9kzzgX0G37WbdevKX6kVEm3LlVN1++ULOLoAJSvTaztcyvZwIKap8oHEce917Jq1fhiz7Zl000OiCOBBbQJsbbHOiZfOHSkgQ5awF/U0pSJXosxC7aIESrHhbI26xa6Ev1JDwe4OnTlhqAXqa5SJV4kCHEYYuY2SdBhwkjPm0B/0NqTiwPFdS9Rwr1qm0uNNUNw7GHq9WoV6dI16jYqXNzaQXGT2QUeByrz6k62gF4pAa3OKMm1gwsBeyUr7HJNzy+f4WgwKFIqJK1MnL5t+K2yfyKBRsZFEVOMSxngqPog2iMzQauRiJavuWEV4IFhCeLmoWpIlgvnOsrXsfiIpDV35PsaLs6NjiXeJnQtWEBWVMYvtWAqFFeW93BitA71JCySnbTowtddTVcbIWR5GKbkfm0RqypZ6M5HZtLs6jxulufQvUZCRYDbY02NTtKJns13fluj8qJE4N86PIZRCa3qbGH9apLis9Bo+a/ChMpAvA4ZlyDTQYogXYLRBktMiKVb5FIEvZWVAQV0kJVy4VoRwu1VFlPEVsz7BIyF1Wmhk8N3UqlezkOdtm/7RfICDgVQo0TNSYHuLx1tYK4z0K20ZVjxx/c="
   - secure: "MmbXszVNtnyM9xwKf+SrecyQyXBRAqeoLCweFHpdd615GLWlGDMSCQwfo0CQTitxzWXTWjZQKxwxBX2uEpLvFLwgyhsETxDFGuNuzGtYqAsCFIcorBlM4JYD22j7RQZH01igbzBqCmzA2GJNQJ8MILRmAVrX4GrSzDBRHRQ2fWnd5YzRxpi3K1VGSBikrbdgs5BfdeZxgwP/Nh7iQ66oWx4nKWn2TG2v/oWut51+nBrXiHPuLdQXK7jkCejxPfc910vrqPUQiYT7U2ajb7ds7JF6+qlftWKbDX5zcaDCinOvdeBaweiyF5ZCoJZrEtEbOsYRXs/IZUjGMwsveo+dRw39BaFg+tcWSsJabqm7mW/XonaHs+Q/ivPWYL8ZGIEVni+m3GtzPhfFjIzdJT4t+Wzm2IpCrkyvbpSrIcJ1gljaHt8DGuQo656ESjuex1RR2nXkF94o/omaJy66koBMCItZZR1LH6gdIggYZ0f55bah3hldf4a3nAuOSrePx6Xz97+5BpX+FDAGpQ/YcMI6u3a6U2+DAXcOocZQMDLtYbL+KHYQPXKc0/MClMN19wYzPXS0jvb1tmjwoRsUWWtIJTZN8ZZ87lM3Y3Ao31h9ErFn778gPkAcSGWdjKBzIC/WHADSwN4Rlc+A5uZVbC1A6MPKv0iyPPRg/IZYGU01yoI="
   - secure: "NgyVzjtBcIwyWzuUFv4EiMQ56XFacI5qFyWNUNnSk956ha43OwOITT2FJLPEutZD0BVZxU19KzXTVDRGa0Cu+vYi9aUVD93fpsqeR+IQ9l2q4J7dTwfCmF+YMrU3RKEsRZo0XDCLA1kfQDk0kvm84uIYqVgJD9BFGYLT+TQ8+5baW6NG9QpGLqJscjZkIOxu97+58Paehfkg9yW/8dk2cks5fPeSpgl7l5f5n1ngugs/53LhpaIBAeKq7r1u8dDhK03MXiXQ1vRnItGIBaccymgLLH8qV5AE/7Jdk8iGOfknvGkmK95rkvT72KDsHwHlnPcbiP8a+K/j1i5Ep5Sbx9HW6HhE/vGEJl6EM+b5XVvNKHYIlY2mcy3YKAju/spsmrzXvnzMIqzI2qHdA41Y43/vNRE1Kx4HgKwcKFomr5SLTvbUnRBCthVpDbX/rPXyMVnoQVZ8ooa8jBS8p4Tj3NPiyJlQvU89sLsm+A5einILjZ/4v8RhDpgtAP2kFxJaKmVZwchEAPt6CyKf1OtgQYKtZnQPC4qvU5b7LiQ23croJrvDu5N1kFledRLeUtyhGSaOVFBhhZaFfLm0qo7uw3bauIuB51RnshvraBlucPtGtqW3qv5QEsAcVjo/reQTxWG5XuRlA/vUeyQ09S7msuJxCQmoDwu+V4DlTVphiPQ="
