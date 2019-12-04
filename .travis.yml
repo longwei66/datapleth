@@ -35,6 +35,7 @@ before_install:
 - ls "$HOME/"
 - pwd
 script:
+- Rscript -e 'install.packages(c("devtools"))'
       #- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
       #- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
       #- Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
