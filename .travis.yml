@@ -58,6 +58,7 @@ after_success:
 - pwd
 - ls
 - ls "$HOME"
+- ls "content/blog"
 - ls "public"
 - bash _scripts/deploy.sh
 env:
