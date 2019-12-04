@@ -33,6 +33,7 @@ else
 fi
 if [ $TRAVIS_BRANCH == 'beta' ] ; then
     # Initialize a new git repo in _site, and push it to our server.
+    pwd
     cd public
     git init
         

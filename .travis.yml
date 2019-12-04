@@ -52,7 +52,7 @@ script:
       
 after_success:
 - ls "$HOME"
-- ls "$HOME/public"
+- ls "public"
 - bash _scripts/deploy.sh
 env:
   global:
