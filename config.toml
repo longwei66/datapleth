@@ -1,4 +1,4 @@
-baseurl = "https://dev.datapleth.io/"
+baseurl = "https://beta.datapleth.io/"
 # baseurl = "https://datapleth.io/"
 title = "Datapleth.io"
 theme = "hugo-universal-theme-mod"
@@ -13,6 +13,9 @@ googleAnalytics = ""
 
 # Define the number of posts per page
 paginate = 7
+
+# Ignore files to solve warning
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [menu]
 
