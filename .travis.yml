@@ -54,8 +54,6 @@ script:
 - ls "$HOME"
 - ls "public"
 - ls "content/blog"
-
-      
 after_success:
 - pwd
 - ls
