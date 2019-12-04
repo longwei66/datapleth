@@ -33,6 +33,7 @@ addons:
 before_install:
 - bash _scripts/install.sh
 - ls "$HOME/"
+- pwd
 script:
       #- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
       #- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
@@ -46,6 +47,8 @@ script:
       #- Rscript -e 'install.packages(c("rayshader", "magick"))'
 - Rscript -e 'blogdown::install_hugo(version = "0.40", force = TRUE)'
 - Rscript -e 'blogdown::build_site()'
+- pwd
+- ls
 - ls "$HOME"
 - ls "public"
 - ls "content/blog"
