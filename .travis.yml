@@ -33,7 +33,6 @@ addons:
 before_install:
 - bash _scripts/install.sh
 - ls "$HOME/"
-- ls "$HOME/public"
 script:
       #- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
       #- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
