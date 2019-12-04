@@ -48,6 +48,7 @@ script:
 - Rscript -e 'blogdown::build_site()'
 - ls "$HOME"
 - ls "public"
+- ls "content/blog"
 
       
 after_success:
