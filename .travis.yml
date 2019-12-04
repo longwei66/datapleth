@@ -10,9 +10,6 @@ cache:
   packages: true
   directories:
   - "$HOME/bin"
-  - "$HOME/public"
-git:
-  submodules: false
 apt_packages:
 - default-jre
 - default-jdk
@@ -56,7 +53,6 @@ jobs:
       - ls "content/blog"
       - ls "public"
       - bash _scripts/deploy.sh
-#after_success:
 env:
   global:
   - RGL_USE_NULL=TRUE
