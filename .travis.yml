@@ -5,6 +5,7 @@ branches:
   only:
   - master
   - dev
+  - beta
 sudo: required
 cache:
   packages: true
