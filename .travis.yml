@@ -10,6 +10,7 @@ cache:
   packages: true
   directories:
   - "$HOME/bin"
+  - "$HOME/public"
 git:
   submodules: false
 apt_packages:
