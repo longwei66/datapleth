@@ -86,7 +86,6 @@ paginate = 7
     custom_css = ["codefolding.css"]
 
 
-
     # Twitter
     twitter = "GoHugoIO"
     twitterImage = "img/twitter-default.png"

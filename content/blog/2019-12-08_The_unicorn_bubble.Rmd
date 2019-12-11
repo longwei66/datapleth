@@ -1,9 +1,9 @@
 ---
-title: "The unicorn bubble"
+title: "The unicorn bubble - Donuts or Waffles ?"
 date: "2019-12-08T13:39:46+02:00"
 author: "Datapleth.io"
-tags: ["health", "map", "usa"]
-categories: ["geography", "health", "dataviz"]
+tags: ["NYSE", "WSJ", "waffle"]
+categories: ["finance", "dataviz"]
 banner: "img/illustrations/waffle-ipo.png"
 output: html_document
 ---
@@ -12,28 +12,50 @@ output: html_document
 
 ## How Silicon Valley feels right now ?
 
-Few days ago the Wall Stree Journal ([@WSGGraphics](https://www.wsj.com/articles/silicon-valley-adjusts-to-new-reality-as-100-billion-evaporates-11574764205?shareToken=st69f61faedfb349d3b584f9bc1dcf58db&mod=e2twg
-)) published a tweet about 
+Few days ago the Wall Stree Journal (@WSGGraphics) published a tweet about 
 Unicorns loosing value between their last private-market valuation and their
-IPO price. They illustrated the analysis with some donut like charts.
+IPO price. 
 
-Their objective was to present a comparison of these companies valuation, the 
-larger radius the higher value. In addition, WSJ wanted to illustrate the loss
-of value during IPO.
+In this post, we will replicate their visuals and we will demonstrate the 
+problem of using donut like charts. We will propose an alternative using
+waffle charts.
 
+They illustrated the analysis with some circular charts. The problem with such
+visuals is that human eye is very bad ad comparing surfaces when they are 
+represented by disks.
 
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">‘We are all adjusting our eyes and no one has any idea how the rest of the night is going to go. That’s how Silicon Valley feels right now.’<a href="https://t.co/spPPAD7ggZ">https://t.co/spPPAD7ggZ</a> via <a href="https://twitter.com/WSJ?ref_src=twsrc%5Etfw">@WSJ</a> <a href="https://t.co/C33VDREVUH">pic.twitter.com/C33VDREVUH</a></p>&mdash; WSJ Graphics (@WSJGraphics) <a href="https://twitter.com/WSJGraphics/status/1199347440559648774?ref_src=twsrc%5Etfw">November 26, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-
-The problem with such chart is that human eye is very btd ad comparing surfaces
-when they are represented by disks. If we look at the comparison between Wework
+WSJ objective was to present a comparison of these companies valuation, 
+In addition, WSJ wanted to illustrate the loss of value during IPO
+using two colors. If we look at the comparison between Wework
 and Juul Labs, this is striking. The two half disks looks very similar in term
 of diameters, but there is a `r round(47/38*100-100)`% gap ! WeWork valuation is
-47 Billions USD vs. Juul Labs which is 38 billions USD,
+47 Billions USD vs. Juul Labs' is 38 billions USD,
 
 In addition, the loss of value of Juul Labs looks relatively small as the gap 
 between the inner disk and the outside radius is close but in reality, this
 company lost `r round(100-24/38*100)`% !
+
+
+<center>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">‘We are all adjusting our eyes and no one has any idea how the rest of the night is going to go. That’s how Silicon Valley feels right now.’<a href="https://t.co/spPPAD7ggZ">https://t.co/spPPAD7ggZ</a> via <a href="https://twitter.com/WSJ?ref_src=twsrc%5Etfw">@WSJ</a> <a href="https://t.co/C33VDREVUH">pic.twitter.com/C33VDREVUH</a></p>&mdash; WSJ Graphics (@WSJGraphics) <a href="https://twitter.com/WSJGraphics/status/1199347440559648774?ref_src=twsrc%5Etfw">November 26, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</center>
+
+
+## Let's replicate WSJ visuals
+
+As a first step, we will reproduce the WSJ plots using the R package `ggforce`.
+This package is adding interesting functionnalites to `ggplot2`, in particular
+the possibility to draw circles. The half disc surface represent the company
+valuation, the larger as before IPO and the smaller in grey, after IPO.
+
+The formula to compute the radius of each circle can be deduced from the surface
+of the half disk.
+
+$$ S = \frac{\pi . r² }{2} $$  
+
+Which makes :
+
+$$r = \sqrt{\frac{2.S}{\pi}} $$
 
 
 
@@ -48,7 +70,7 @@ wjs <- c("#ad3976", "#eeeff1")
 unicorns <- data.frame(
     start = rep(-pi/2,4)
     , end = rep(pi/2,4)
-    , r = c(47, 8, 38, 24)
+    , valuation = c(47, 8, 38, 24)
     , type = c("IPO","Private","IPO","Private")
     , unicorn = factor(
         c("WeWork","WeWork", "Juul Labs", "Juul Labs")
@@ -67,7 +89,7 @@ loss <- data.frame(
 ggplot(unicorns) +
     geom_arc_bar(
         aes(
-            x0 = 0, y0 = 0, r0 = 0, r = sqrt(r/pi*2),
+            x0 = 0, y0 = 0, r0 = 0, r = sqrt(valuation/pi*2),
             start = start, end = end, fill = type), col = "#eeeff1"
     ) + 
     coord_fixed() +
@@ -76,8 +98,16 @@ ggplot(unicorns) +
     scale_fill_manual(values = wjs) +
     scale_color_manual(values = wjs) +
     facet_wrap(facets = . ~ unicorn) + theme( legend.position = "none")
-#scale_x_continuous(breaks=c(0), labels=c("D0.5"))
+
 ```
+
+
+It's a nice visual, we can see clearly the hug frop of value of the failed 
+WeWork IPO. However it's very difficult to compare the pre-IPO value of Juul 
+Labs with the one of WeWork if we don't add the legend (as WSJ did it). We
+proposes bellow an alternative based on waffle charts where one square 
+represents 1 billion USD. It makes the comparison between the two companies 
+easier, as well as the drop of value from Juul Labs more visible.
 
 
 ```{r waffle, message=FALSE, warning=FALSE}
@@ -99,48 +129,11 @@ iron(
 ```
 
 
+## Conclusions
+
+Are you Donuts of Waffles ?
 
 
-https://www.forbes.com/sites/greatspeculations/2019/10/07/the-unicorn-bubble-is-bursting/#161f45a18819
+## References
 
-
-
-## Data
-
-```{r}
-unicorns <- "https://data.datapleth.io/share/stock_market/unicorns.csv"
-```
-
-
-
-
-## Tests
-
-```{r test, message=FALSE, warning=FALSE}
-# Get quantmod
-if (!require("quantmod")) {
-    install.packages("quantmod")
-    library(quantmod)
-}
-
-start <- as.Date("2017-03-02")
-end <- as.Date("2019-12-07")
-
-# Let's get Apple stock data; Apple's ticker symbol is AAPL. We use the
-# quantmod function getSymbols, and pass a string as a first argument to
-# identify the desired ticker symbol, pass 'yahoo' to src for Yahoo!
-# Finance, and from and to specify date ranges
-
-# The default behavior for getSymbols is to load data directly into the
-# global environment, with the object being named after the loaded ticker
-# symbol. This feature may become deprecated in the future, but we exploit
-# it now.
-
-mySnap <- getSymbols("SNAP",src="yahoo")
-
-```
-
-```{r}
-plot(SNAP[, "SNAP.Close"], main = "SNAP")
-```
-
+(https://www.wsj.com/articles/silicon-valley-adjusts-to-new-reality-as-100-billion-evaporates-11574764205?shareToken=st69f61faedfb349d3b584f9bc1dcf58db&mod=e2twg)
