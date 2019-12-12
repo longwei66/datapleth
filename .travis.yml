@@ -31,7 +31,7 @@ addons:
   - 188.166.216.253
 before_install:
 - bash _scripts/install.sh
-#- git submodule update --init --recursive
+- git submodule update --init --recursive
 - ls "$HOME/"
 - pwd
 - ls
