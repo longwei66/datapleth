@@ -25,6 +25,7 @@ apt_packages:
 #- libjq-dev mesa-common-dev libglu1-mesa-dev
 #- cargo
 - vim
+- abcde
 #- xorg libx11-dev libmagick++-dev
 addons:
   ssh_known_hosts:
@@ -39,9 +40,6 @@ before_install:
 #- git submodule update --init --recursive
 jobs:
   include:
-  - stage: "Instal deb packages"
-    apt_packages:
-      - abcde
   - stage: "Install R Packages" 
     script:
       #- Rscript -e 'install.packages(c("devtools"))'
