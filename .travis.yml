@@ -37,8 +37,11 @@ before_install:
 - ls
 # need to force manually the update of the submodule containing theme
 #- git submodule update --init --recursive
-script:
-#- Rscript -e 'install.packages(c("devtools"))'
+jobs:
+  include:
+  - stage: "Install R Packages" 
+    script:
+      #- Rscript -e 'install.packages(c("devtools"))'
       #- Rscript -e 'install.packages(c("maptools","maps","rgeos","gpclib","foreign","sp"))'
       #- Rscript -e 'install.packages(c("ggplot2","plyr","dplyr", "reshape2", "stringdist"))'
       #- Rscript -e 'install.packages(c("RCurl", "Amelia", "rgdal", "jsonlite"))'
@@ -49,21 +52,16 @@ script:
       #- Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
       #- Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
       #- Rscript -e 'install.packages(c("rayshader", "magick"))'
-#- Rscript -e 'devtools::install_github("rstudio/blogdown")'
-- Rscript -e 'blogdown::install_hugo(version = "0.40", force = TRUE)'
-- Rscript -e 'blogdown::build_site()'
-- pwd
-- ls
-- ls "$HOME"
-- ls "public"
-- ls "content/blog"
-after_success:
-- pwd
-- ls
-- ls "$HOME"
-- ls "content/blog"
-- ls "public"
-- bash _scripts/deploy.sh
+      #- Rscript -e 'devtools::install_github("rstudio/blogdown")'
+      - Rscript -e 'blogdown::install_hugo(version = "0.40", force = TRUE)'
+      - Rscript -e 'blogdown::build_site()'
+      after_success:
+      - pwd
+      - ls
+      - ls "$HOME"
+      - ls "public"
+      - ls "content/blog"
+      - bash _scripts/deploy.sh
 env:
   global:
   - RGL_USE_NULL=TRUE
