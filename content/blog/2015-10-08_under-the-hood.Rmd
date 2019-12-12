@@ -103,7 +103,7 @@ With such approach it is very easy to write reports, presentations which contain
 
 We use [travis](https://travis-ci.org) for continuous intregration as described [here](https://bookdown.org/yihui/blogdown/travis-github.html)
 
-
+$$ \frac{\partial \rho}{\partial t} + \nabla \cdot \vec{j} = 0 \,. \label{eq:continuity} $$
 
 ## Code information
 
