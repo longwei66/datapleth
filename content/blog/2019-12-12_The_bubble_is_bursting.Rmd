@@ -1,0 +1,92 @@
+---
+title: "Is the unicorn really bursting ?"
+date: "2019-12-12T13:39:46+02:00"
+author: "Datapleth.io"
+tags: ["NYSE", "WSJ", "waffle"]
+categories: ["finance", "dataviz"]
+banner: "img/illustrations/waffle-ipo.png"
+output: html_document
+---
+
+We discussed in our previous post some recent IPO for which a large drop of 
+valuation was observed between private valuation and IPO value. Let's have look
+now on the stock price of Silicon Valley main Unicorns in the recent months. 
+And we'll see that it's not getting any better. 
+
+    
+    
+## Data
+    
+```{r}
+unicorns <- c(
+    "SNAP", "DBX", "SPOT", "LYFT", "PINS", "UBER", "CRWD", "CHWY", "WORK", "SDC",
+    "ADR"
+)
+```
+
+
+
+
+## Tests
+
+```{r test, message=FALSE, warning=FALSE}
+# Get quantmod
+library(quantmod)
+library(dygraphs)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+
+start <- as.Date("2017-03-02")
+end <- as.Date("2019-12-30")
+
+# Let's get Apple stock data; Apple's ticker symbol is AAPL. We use the
+# quantmod function getSymbols, and pass a string as a first argument to
+# identify the desired ticker symbol, pass 'yahoo' to src for Yahoo!
+# Finance, and from and to specify date ranges
+
+# The default behavior for getSymbols is to load data directly into the
+# global environment, with the object being named after the loaded ticker
+# symbol. This feature may become deprecated in the future, but we exploit
+# it now.
+
+mySnap <- getSymbols(unicorns,src="yahoo")
+
+```
+
+```{r}
+dygraph(ADR$ADR.Close) %>% dyRangeSelector()
+```
+
+```{r}
+g <- ggplot(data = cbind(SNAP,DBX,SPOT,LYFT,PINS,UBER,CRWD))
+g <- g + geom_line(mapping = aes(x = Index, y = SNAP.Close))
+g <- g + geom_line(mapping = aes(x = Index, y = DBX.Close))
+g <- g + geom_line(mapping = aes(x = Index, y = SPOT.Close))
+g <- g + geom_line(mapping = aes(x = Index, y = LYFT.Close))
+g <- g + geom_line(mapping = aes(x = Index, y = PINS.Close))
+g <- g + geom_line(mapping = aes(x = Index, y = UBER.Close))
+g <- g + geom_line(mapping = aes(x = Index, y = CRWD.Close))
+g
+```
+
+```{r}
+dTx <- cbind(SNAP$SNAP.Close,DBX$DBX.Close,SPOT$SPOT.Close,LYFT$LYFT.Close,PINS$PINS.Close,UBER$UBER.Close,CRWD$CRWD.Close, CHWY$CHWY.Close, WORK$WORK.Close, SDC$SDC.Close)
+# convert to data.table with index 
+dT <- as.data.table(dTx)
+dTm <- melt(dT, id.vars = "index")
+dTm[ , date := as.Date(index)]
+```
+
+```{r}
+h <- ggplot(data = dTm)
+h <- h + geom_line(mapping = aes( x = date, y = value))
+h <- h + facet_wrap(facets = . ~ variable, scales = "free")
+h
+```
+
+
+
+## References
+
+https://www.forbes.com/sites/greatspeculations/2019/10/07/the-unicorn-bubble-is-bursting/#161f45a18819
