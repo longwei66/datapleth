@@ -54,6 +54,7 @@ jobs:
       #- Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
       #- Rscript -e 'install.packages(c("rayshader", "magick"))'
       #- Rscript -e 'devtools::install_github("rstudio/blogdown")'
+      - Rscript -e 'install.packages(c("quantmod","dygraphs"))'
       - Rscript -e 'blogdown::install_hugo(version = "0.40", force = TRUE)'
       - Rscript -e 'blogdown::build_site()'
     after_success:
