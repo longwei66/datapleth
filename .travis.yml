@@ -5,7 +5,7 @@ branches:
   only:
   - master
   - dev
-sudo: required
+#sudo: required
 cache:
   packages: true
   directories:
