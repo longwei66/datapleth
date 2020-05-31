@@ -56,3 +56,10 @@ sudo apt install ruby-dev
 sudo gem install travis
 ```
 
+Then it's pretty easy to add encrypted environement variables :
+
+```
+travis encrypt MON_API_KEY=masuperapikeysecrete
+
+```
+
