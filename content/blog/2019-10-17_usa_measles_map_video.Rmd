@@ -97,7 +97,7 @@ plotMeasleMap <- function(year_filter = 1950){
         , color="white"
         , size = 0.2
     ) +
-        theme_tufte() + coord_map() +
+        coord_map() + # theme_tufte()  +
         scale_fill_gradientn(
             colours = mypal
             , values=c(0, 0.01, 0.02, 0.03, 0.09, 0.1, .15, .25, .4, .5, 1)
@@ -114,7 +114,7 @@ plotMeasleMap <- function(year_filter = 1950){
                 #, barwidth= 0.2
             )
         ) +
-        ggtitle(year_filter) +
+        ggtitle(year_filter) #+
         theme(
             axis.title = element_blank()
             , axis.text = element_blank()
@@ -140,13 +140,22 @@ One can zoom or rotate the plot. In this example we focus on the year 1957.
 
 
 ```{r render3Dplot, echo=TRUE, message=FALSE, warning=FALSE, webgl=TRUE}
+theme_set(theme_tufte())
+
 rayshader::plot_gg(
     plotMeasleMap(1957)
-    , zoom = 0.42
-    , theta = 20
-    , phi = 40
-    , windowsize = c(200,160)
-    , multicore = TRUE
+    #, zoom = 0.42
+    #, theta = 20
+    #, phi = 40
+    #, windowsize = c(200,160)
+    #, multicore = TRUE
+    , multicore=TRUE
+    , width=5
+    , height=5
+    , scale=250
+    , windowsize=c(1400,866)
+    , zoom = 0.55
+    , phi = 30
 )
 s <- rgl::scene3d()
 rgl::rgl.close()
