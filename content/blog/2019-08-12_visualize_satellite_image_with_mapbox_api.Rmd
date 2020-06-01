@@ -144,6 +144,6 @@ setwd(dir = "../")
 Finally we convert the RasterBrick object to a png which is shown bellow.
 
 ```{r viewPng, message=TRUE, warning=FALSE, out.width='100%'}
-slippymath::raster_to_png(mySat, "../../static/img/from_blog/example_satellite_mapbox_1.png")
-knitr::include_graphics("/img/from_blog/example_satellite_mapbox_1.png", error = FALSE)
+slippymath::raster_to_png(mySat, "../../static/img/from_blog/example_satellite_mapbox_10.png")
+knitr::include_graphics("/img/from_blog/example_satellite_mapbox_10.png", error = FALSE)
 ```
