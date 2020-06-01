@@ -60,7 +60,7 @@ We build first a vector containing all the URL of XML data files.
 
 ```{r getUsaData, message=FALSE, warning=FALSE}
 url_pattern_usa <- "https://data.treasury.gov/feed.svc/DailyTreasuryYieldCurveRateData?$filter=year(NEW_DATE)%20eq%20"
-uri_usa <- paste0(url_pattern_usa, 1990:2019)
+uri_usa <- paste0(url_pattern_usa, 1990:2020)
 ```
 
 We create a function to read the remote XML, parse it and convert it as a
