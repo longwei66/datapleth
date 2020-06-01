@@ -35,7 +35,7 @@ addons:
     - fonts-arphic-gkai00mp fonts-arphic-ukai fonts-arphic-uming fonts-cns11643-kai
     - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
     - fonts-cwtex-ming fonts-cwtex-yen libudunits2-dev
-    - libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
+    - libgdal-dev libproj-dev libprotobuf-dev protobuf-compiler
     - libjq-dev mesa-common-dev libglu1-mesa-dev
     - cargo
     - xorg libx11-dev libmagick++-dev
