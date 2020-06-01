@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+content/blog/*.html
+content/blog/*_files
+content/blog/*_cache
+content/blog/data
+content/blog/img
+content/blog/sat
+
