@@ -191,7 +191,7 @@ on a single map, we don't need such resolution in the limits of communes. Thus
 we simplify the polygons with a specific algorithm.
 
 ```{r simplifyMap, message=FALSE, warning=FALSE}
-communes_lim <- rmapshaper::ms_simplify(communes_lim)
+#communes_lim <- rmapshaper::ms_simplify(communes_lim)
 ```
 
 
