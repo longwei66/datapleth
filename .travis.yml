@@ -6,28 +6,27 @@ branches:
   - master
   - dev
   - beta
-#sudo: required
 cache:
   packages: true
   directories:
   - "$HOME/bin"
-#git:
-#  submodules: false
-apt_packages:
-#- default-jre
-#- default-jdk
-#- fonts-wqy-zenhei
-#- fonts-arphic-bkai00mp fonts-arphic-bsmi00lp fonts-arphic-gbsn00lp
-#- fonts-arphic-gkai00mp fonts-arphic-ukai fonts-arphic-uming fonts-cns11643-kai
-#- fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
-#- fonts-cwtex-ming fonts-cwtex-yen libudunits2-dev
-#- libgdal-dev libproj-dev libprotobuf-dev libv8-dev protobuf-compiler
-#- libjq-dev mesa-common-dev libglu1-mesa-dev
-#- cargo
-- vim
-- abcde
-#- xorg libx11-dev libmagick++-dev
 addons:
+  apt:
+    packages:
+    - vim
+    - abcde
+    - default-jre
+    - default-jdk
+    - fonts-wqy-zenhei
+    - fonts-arphic-bkai00mp fonts-arphic-bsmi00lp fonts-arphic-gbsn00lp
+    - fonts-arphic-gkai00mp fonts-arphic-ukai fonts-arphic-uming fonts-cns11643-kai
+    - fonts-cns11643-sung fonts-cwtex-fs fonts-cwtex-heib fonts-cwtex-kai
+    - fonts-cwtex-ming fonts-cwtex-yen libudunits2-dev
+    - libgdal-dev libproj-dev libprotobuf-dev protobuf-compiler
+    - libjq-dev mesa-common-dev libglu1-mesa-dev
+    - cargo
+    - xorg libx11-dev libmagick++-dev
+    - libnode-dev
   ssh_known_hosts:
   - datapleth.io
   - 188.166.216.253
@@ -55,7 +54,7 @@ jobs:
       #- Rscript -e 'install.packages(c("rayshader", "magick"))'
       #- Rscript -e 'devtools::install_github("rstudio/blogdown")'
       - Rscript -e 'install.packages(c("quantmod","dygraphs"))'
-      - Rscript -e 'blogdown::install_hugo(version = "0.40", force = TRUE)'
+      - Rscript -e 'blogdown::install_hugo(version = "0.72.0", force = TRUE)'
       - Rscript -e 'blogdown::build_site()'
     after_success:
       - pwd
