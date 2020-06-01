@@ -13,8 +13,6 @@ cache:
 addons:
   apt:
     packages:
-    - vim
-    - abcde
     - default-jre
     - default-jdk
     - fonts-wqy-zenhei
@@ -32,11 +30,10 @@ addons:
   - 188.166.216.253
 before_install:
 - bash _scripts/install.sh
+- git submodule update --init --recursive
 - ls "$HOME/"
 - pwd
 - ls
-# need to force manually the update of the submodule containing theme
-#- git submodule update --init --recursive
 jobs:
   include:
   - stage: "Install R Packages" 
@@ -50,30 +47,21 @@ jobs:
       #- Rscript -e 'install.packages(c("plotly", "RColorBrewer", "XML", "rasterVis"))'
       #- Rscript -e 'install.packages(c("slippymath","glue","png","purrr","curl"))'
       #- Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
-      #- Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
+      - Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
       #- Rscript -e 'install.packages(c("rayshader", "magick"))'
       #- Rscript -e 'devtools::install_github("rstudio/blogdown")'
       - Rscript -e 'install.packages(c("quantmod","dygraphs"))'
       - Rscript -e 'blogdown::install_hugo(version = "0.72.0", force = TRUE)'
       - Rscript -e 'blogdown::build_site()'
-    after_success:
-      - pwd
-      - ls
-      - ls "$HOME"
-      - ls "public"
+  - stage: "Build site with blogdown & deploy"
+    script: 
+      - Rscript -e 'blogdown::build_site()'
       - ls "content/blog"
+      - ls "public"
       - bash _scripts/deploy.sh
-  - stage: "Just ls"
-    script:
-      - ls
-      - abcde -v
 env:
   global:
   - RGL_USE_NULL=TRUE
   - secure: "ZNvyNg/EX8ooulme8yEYDtcSHoIo24p2+4GFowliDZIiXdfz/NmIwNMrESIZ6JjXCbQ4KzzPM4LnI33KN8J4/m93WH3U7SVEe4IxeTzq4YtpwEX+KoFJhUZgyDu7QuQtdEY1Zj7zypKiRJFMB8IoUvATIl0ZSP+I2J8UrdmqgexJrPFsW+LnBOfM1LNIZwo0eNUnTAtRVKuK8JSP+PeR4X4ebyuRIKWLevcfV61vulKvQatk85/RBcsmYSrjWxlyTmIzD2LtA3oy6hiXIBsOtkR9OzE1UXrinQNh4n7q1/qyUE8fWy/lclGyRIrat2yZ/hSZ+ROCVaDxdsjGsehHm15x4AvMOMzPEalNWOzYBpBh9CRQ5rywQBDELpAc0ReEc5wAHZiYcAU5PP8KWBbXJPrvFy1E2YCPGy611SDLhr4EWx5UdwynmUvh7CcU/PCHCXdK+ElSuZ7jZJAP3+Q6tXNk0yu5X50dBAI5Tl37GLYNtjbqelHqOZc2YOL29IgYpzLVge8qBy2rkoQnuohJtlWHZVn/+FQIB+81yslBvIggzuOoukwzpc37gFCbiKB02nDqAzFA/Wkwo/26vpu5eBGZ0nF9yS7N+ZGaRqbEbkX6o4ce1JgdBlkBRbH/4YF9RyjshDBbyCUAKc7Nik9O2RKY7AAdPT6oC0baEg/mc+E="
   - secure: "pduOqce5DE4imI4B/ap9fh/dlvrYO8qOH36FP89d3sDNGstXOUOAjmMdHuUkH1RUF1NCmt89Fjz9cQGCgb5NjpQA3DCnOnhdFUeRLztiHJj5ZowhagxGXAGy2WaEN+2AbijrbfaX1jk+1LOyGyHXgl/WgXl1WwaMqHsjZXRvExEme4pPDPMWwvlhvjiKNBy+2DI3hq5sG4FR0bDpACadNRIevA1ZjnT0MG4mW8uZ4I24jqORevAe4lA5X2paky86oxCMpmv7pnL2kiJvvlRjvEv6zVX+otcdaQcQ6odFaO1UdahZ5MJkzFJaPJdMrqzSj2wMa4l42ggvlRf/UBuegnB8MDVpSWrR0q+WW5p7POnPt0LIv4iHxdObVrBO/4bCZwMnIFWwII3EdOuJToAz5whDhmngVvz3kPpXyxLpbMLd3Ie1WLAqFdgWNQ4qn+y/3J+kl0UvB5a+o9SuXD9TatnHfs/LVPMiB7M77Hf10FRemzf8IV2c5dk1OJxeEchS+6hv4nrB7F4pLswTejEIButmYf3fzWzpB3nIYBfz1j6BqPDiz+SiIqX/zFHxJ6BaLgzAjqlb/joKKfl09OJrc7oE8GqTQKcUQXENLoxQzeAr4grNS88F+5/x3DarYAPpjuRhKAKMpKr1lCb6AW8YP9W37S8ZTyE0fZuJEDvMF/c="
   - secure: "Pk2M/y9NxD0AOdWlTGbKhSAu1tUm5Co0nHxO/osZwptO14sOGgyVOpKC3EPa+vNQGAkcnXAzH9wiG97nrc341CUrLPBFGiA0NsK7IdDL+NJz/UDxUFiVBEKifE1mhxX5QAy4/hLW+4UlrrvdLiTeyIecMvSGr1X09kpGILLS2vyoBGyumbeQ7bW1TV9cb22nFLxr8IKCZRJxhj29qC1orrAgzJ1DBYTei1/DjEO6oxGYbMZwB8P3QpHWp9SjZ6vv68zj6rGPgWUPGuWJtOXDQb+pjdYpo8/Vwp/we4ZoN9gjFc2K7uO5K65by9COm/w9FPns+ju47nO03PS9AKYCKksAB9HPwPgXGmEM8jCCRWy2vxA9/bY2fQSlGfyqxbe1WyARiqXeyjzPNhexxtylNhwu7lEzlBGy0Y8jvIrJF9uFWGKLmo+djueFU3IdfZnXYCs+ijIy+DkjdFqo5p0AbOGgMnMOYiFP8VDabvL44+VK2uvXMMqexarPzHlXG/qn6ljLp7Cu/xHKHYY5EfXMcKcTSGg2nJxJaTL3VnZ472n+vlOJfcJkCw5vNARfsCyChaqJlUgNHxrYreLVNiuKKldSqKGrIpX1891wS0em9nqv/zlNv4a8NZ9jwihzdo2ILrl7/Z3GBRanE78RZUPhABzZ2jkTAjBX7BtqJiAunCs="
-  
-  
-  
-  
