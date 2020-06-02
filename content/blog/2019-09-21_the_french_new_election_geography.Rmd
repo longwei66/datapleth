@@ -207,7 +207,7 @@ We have election results per communes and spatial file per communes. It's time
 now to merge both datasets and to a choropleth of vote results as % of expressed
 votes (not counting absent or null votes).
 
-```{r mergeDataShape, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r mergeDataShape, echo=TRUE, message=FALSE, warning=FALSE}
 communes_results <- merge(
   x = election_results_sub
   , y = communes_lim_fortified
@@ -229,7 +229,7 @@ Finaly we can plot the results with one map per list for the six main lists.
 
 
 
-```{r electionChoropleth, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r electionChoropleth, echo=TRUE, message=FALSE, warning=FALSE}
 p <- ggplot() +
   geom_polygon(
     data = communes_results, 
