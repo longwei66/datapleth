@@ -31,7 +31,7 @@ library(data.table)
 library(knitr)
 library(kableExtra)
 library(dplyr)
-library(geojson)
+library(geojsonio)
 library(broom) # replacing ggplot2::fortify
 library(ggplot2)
 library(ggthemes)

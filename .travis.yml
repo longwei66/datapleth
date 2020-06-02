@@ -48,6 +48,7 @@ jobs:
       - Rscript -e 'install.packages(c("kableExtra", "mapproj", "geojsonio", "broom"))'
       - Rscript -e 'install.packages(c("rmapshaper", "anytime", "gifski", "gganimate"))'
       - Rscript -e 'install.packages(c("rayshader", "magick", "ggforce", "waffle"))'
+      - Rscript -e 'install.packages(c("quantmod", "dygraphs"))'
       - Rscript -e 'blogdown::install_hugo(version = "0.72.0", force = TRUE)'
   - stage: "Build site with blogdown & deploy"
     script: 
