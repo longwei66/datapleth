@@ -166,7 +166,13 @@ For this purpose we reuse another project data in which we already
 prepared a fortified data frame of France communes.
 
 ```{r getFranceSp, message=FALSE, warning=FALSE}
-## url of the geojson file downloaded and unzipped from data.gouv.fr
+subDir <- "./data2"
+
+if (! file.exists(subDir)){
+    dir.create(file.path(subDir))
+}
+
+## url of the fortified
 france_communes_lim_fortified_url <- "https://datapleth.sfo2.cdn.digitaloceanspaces.com/geo/geo/france/france/clean/communes_lim_fortified.Rda"
 download.file(url = france_communes_lim_fortified_url, destfile = "./data/france_communes_lim_fortified.Rda")
 load("./data/france_communes_lim_fortified.Rda")
