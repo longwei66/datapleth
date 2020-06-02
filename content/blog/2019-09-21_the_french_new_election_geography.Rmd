@@ -166,7 +166,7 @@ For this purpose we reuse another project data in which we already
 prepared a fortified data frame of France communes.
 
 ```{r getFranceSp, message=FALSE, warning=FALSE}
-subDir <- "./data2"
+subDir <- "./data"
 
 if (! file.exists(subDir)){
     dir.create(file.path(subDir))
