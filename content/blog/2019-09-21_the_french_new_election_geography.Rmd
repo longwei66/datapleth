@@ -190,14 +190,14 @@ The dataset we obtain is quite large, as we are going to plot the whole France
 on a single map, we don't need such resolution in the limits of communes. Thus
 we simplify the polygons with a specific algorithm.
 
-```{r simplifyMap, message=FALSE, warning=FALSE}
-#communes_lim <- rmapshaper::ms_simplify(communes_lim)
+```{r simplifyMap, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+communes_lim <- rmapshaper::ms_simplify(communes_lim)
 ```
 
 
 Let's have a look on this map showing all France mainland communes subdivisions.
 
-```{r plotBaseMap, message=FALSE, warning=FALSE}
+```{r plotBaseMap, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # Fortify the data AND keep trace of the commune code.
 communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
 
@@ -227,7 +227,7 @@ We have election results per communes and spatial file per communes. It's time
 now to merge both datasets and to a choropleth of vote results as % of expressed
 votes (not counting absent or null votes).
 
-```{r mergeDataShape, message=FALSE, warning=FALSE}
+```{r mergeDataShape, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 communes_results <- merge(
   x = election_results_sub
   , y = communes_lim_fortified
@@ -249,7 +249,7 @@ Finaly we can plot the results with one map per list for the six main lists.
 
 
 
-```{r electionChoropleth, message=FALSE, warning=FALSE}
+```{r electionChoropleth, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 p <- ggplot() +
   geom_polygon(
     data = communes_results, 
