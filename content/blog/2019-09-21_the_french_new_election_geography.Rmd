@@ -31,11 +31,10 @@ library(data.table)
 library(knitr)
 library(kableExtra)
 library(dplyr)
-library(geojson)
+library(geojsonio)
 library(broom) # replacing ggplot2::fortify
 library(ggplot2)
 library(ggthemes)
-library(rmapshaper) # used to simplify geojson large files
 ```
 
 ## Election results
@@ -163,45 +162,26 @@ Once we have the election results for each communes, we need now to get data to
 build the map of all communes of France. Such data files are called shapefiles,
 these are polygons containing the geographical limits of all communes.
 
-We are getting the shapefile stored as geojson formats directly on 
-[data.gouv.fr](https://www.data.gouv.fr/en/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/#_), however they are stored in zip and we store a copy
-in our cloud storage.
-
+For this purpose we reuse another project data in which we already
+prepared a fortified data frame of France communes.
 
 ```{r getFranceSp, message=FALSE, warning=FALSE}
-## url of the geojson file downloaded and unzipped from data.gouv.fr
-france_sp_uri <- "https://data.datapleth.io/ext/france/spatial/communes-simple/communes-20190101.json"
+subDir <- "./data"
 
-## let's read directly the file
-france_communes <- geojsonio::geojson_read(france_sp_uri,  what = "sp")
+if (! file.exists(subDir)){
+    dir.create(file.path(subDir))
+}
+
+## url of the fortified
+france_communes_lim_fortified_url <- "https://datapleth.sfo2.cdn.digitaloceanspaces.com/geo/geo/france/france/clean/communes_lim_fortified.Rda"
+download.file(url = france_communes_lim_fortified_url, destfile = "./data/france_communes_lim_fortified.Rda")
+load("./data/france_communes_lim_fortified.Rda")
 ```
-
-Let's filter the results of France mainland only otherwise we will get a very
-large map with all french territories located in Pacific ocean, east coast of
-Africa, or Caribeans. These areas could be interesting but ... in a later post.
-
-```{r filterShape, message=FALSE, warning=FALSE}
-communes_lim <- france_communes[ ! substr(france_communes@data$insee,1,2)  %in% c(
-    "97","98","99"
-    ), ]
-```
-
-The dataset we obtain is quite large, as we are going to plot the whole France
-on a single map, we don't need such resolution in the limits of communes. Thus
-we simplify the polygons with a specific algorithm.
-
-```{r simplifyMap, message=FALSE, warning=FALSE}
-communes_lim <- rmapshaper::ms_simplify(communes_lim)
-```
-
+ 
 
 Let's have a look on this map showing all France mainland communes subdivisions.
 
-```{r plotBaseMap, message=FALSE, warning=FALSE}
-# Fortify the data AND keep trace of the commune code.
-communes_lim_fortified <- broom::tidy(communes_lim, region = "insee")
-
-# Now I can plot this shape easily as described before:
+```{r plotBaseMap, echo=TRUE, message=FALSE, warning=FALSE}
 ggplot() +
   geom_polygon(data = communes_lim_fortified, 
                aes( x = long, y = lat, group = group),
@@ -227,7 +207,7 @@ We have election results per communes and spatial file per communes. It's time
 now to merge both datasets and to a choropleth of vote results as % of expressed
 votes (not counting absent or null votes).
 
-```{r mergeDataShape, message=FALSE, warning=FALSE}
+```{r mergeDataShape, echo=TRUE, message=FALSE, warning=FALSE}
 communes_results <- merge(
   x = election_results_sub
   , y = communes_lim_fortified
@@ -249,7 +229,7 @@ Finaly we can plot the results with one map per list for the six main lists.
 
 
 
-```{r electionChoropleth, message=FALSE, warning=FALSE}
+```{r electionChoropleth, echo=TRUE, message=FALSE, warning=FALSE}
 p <- ggplot() +
   geom_polygon(
     data = communes_results, 
