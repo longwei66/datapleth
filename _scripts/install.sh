@@ -1,6 +1,9 @@
 #!/bin/bash
 set -x # Show the output of the following commands (useful for debugging)
 
+# Update CA certificate to fix the issues with curl ssl
+sudo update-ca-certificates --fresh 
+
 # for rJava
 sudo R CMD javareconf
 
