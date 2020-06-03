@@ -56,7 +56,9 @@ getTychoCondition <- function(
     , api_key_tycho = NULL
 ){
     url <- glue::glue("https://www.tycho.pitt.edu/api/query?apikey={api_key_tycho}&ConditionName={condition}&CountryISO={country_iso}&limit={limit}&offset={offset}")
-    data <- data.table::fread(url)
+    download.file(url = url, destfile = "./data/tmp.csv")
+    data <- data.table::fread("./data/tmp.csv")
+    
     return(data)
 }
 ## Loop & Merge
